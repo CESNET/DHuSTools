@@ -5,14 +5,16 @@ LAST=1
 ATTRIBUTE="CreationDate"
 LIST=0
 PREFIX=""
+MATCH=""
 
-while getopts "hn:u:ticlp:" opt; do
+while getopts "hn:u:ticlp:m:" opt; do
   case $opt in
 	h)
 		printf "Check total files for a given day at a DHuS endpoint \n\nUsage:\n
 \t-h      \tDisplay this help\n \
 \t-n <num>\tNumber of days to count back (default 14)\n \
 \t-p <str>\tName prefix (Platform: S1, S2, or S3)\n \
+\t-m <str>\tName contents match (e.g.: _SLC_)\n \
 \t-t      \tAlso include TODAY\n \
 \t-i      \tSearch by INGESTION Date (default Creation)\n \
 \t-c      \tSearch by CONTENT Date (default Creation)\n \
@@ -42,6 +44,9 @@ while getopts "hn:u:ticlp:" opt; do
 	p)
 		PREFIX="%20and%20startswith(Name,%27${OPTARG}%27)"
 		;;
+	m)
+		MATCH="%20and%20substringof(%27${OPTARG}%27,Name)"
+		;;
   esac
 done
 
@@ -63,7 +68,7 @@ for i in `seq 1 $NUM`; do
 	MSTRING=`date -d @$START "+%Y-%m-%d"`
 
 	printf "\n$MSTRING,"
-	curl -u "$UPWD" ${URL}/odata/v1/Products//%24count?%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27%20and%20${ATTRIBUTE}%20lt%20datetime%27${ESTRING}%27${PREFIX}
+	curl -u "$UPWD" ${URL}/odata/v1/Products//%24count?%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27%20and%20${ATTRIBUTE}%20lt%20datetime%27${ESTRING}%27${PREFIX}${MATCH}
 	if [ $? -gt 0 ]; then
 		break
 	fi
@@ -83,7 +88,7 @@ get_list() {
 	let COUNT=$PAGESIZE+1
 	while [ $COUNT -gt $PAGESIZE ]; do
 		COUNT=0
-		SEG=$(curl -sS -u "$UPWD" ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${ATTRIBUTE}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27${PREFIX})
+		SEG=$(curl -sS -u "$UPWD" ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${ATTRIBUTE}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27${PREFIX}${MATCH})
 		while read -r line; do
 			if [ $COUNT -ne 0 ]; then
 				echo $line;
