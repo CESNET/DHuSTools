@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NUM=14
-LAST=1
+LAST=0
 ATTRIBUTE="CreationDate"
 LIST=0
 PREFIX=""
@@ -30,7 +30,7 @@ while getopts "hn:u:ticlp:m:" opt; do
 		NUM=$OPTARG
 		;;
 	t)
-		LAST=0
+		LAST=1
 		;;
 	i)
 		ATTRIBUTE="IngestionDate"
@@ -55,8 +55,9 @@ URL=$1
 
 
 NOW=`date -d 'yesterday 00:00:00' "+%s"`
-let START=$NOW-$NUM*86400+$LAST*86400
+let START=$NOW-$NUM*86400+86400
 
+let NUM=$NUM+$LAST
 
 get_totals() {
 
