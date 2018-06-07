@@ -36,7 +36,7 @@ while getopts "hn:u:ticlp:m:" opt; do
 		ATTRIBUTE="IngestionDate"
 		;;
 	c)
-		ATTRIBUTE="ContentDate"
+		ATTRIBUTE="ContentDate/End"
 		;;
 	l)
 		LIST=1
