@@ -112,7 +112,9 @@ done < ${REMOTES}
 
 SAVEPWD=`pwd`
 cp -v "${STATSCRIPT}" "${WRKLOGS}/"
+cp -v "${XLS}" "${WRKLOGS}/"
 STATBASE=`basename "${STATSCRIPT}"`
+XLSBASE=`basename "${XLS}"`
 cd ${WRKLOGS}
 echo Running ${STATSCRIPT} in ${WRKLOGS}
 sed --in-place 's/^log_dir=.*$/log_dir=".\/"/' "./${STATBASE}"
@@ -120,12 +122,68 @@ ${STATSCRIPT} "${FROM}" "${TILL}" "./"
 
 
 ##########################################
+# Step 35: Convert to HTML :-(
+
+echo Generating HTML
+CSVS=("client_Bandwith_usage_report" "distributed_report" "retrieved_report")
+
+for file in "${CSVS[@]}"
+do
+	printf "Making ${WRKD}/${file}.html "
+	echo "<table>" >> ${file}.html
+	while read INPUT ; do
+		echo "<tr><td>${INPUT//;/</td><td>}</td></tr>" >> ${file}.html
+	done < ${file}_${FROM}_${TILL}.csv 
+	echo "</table>" >> ${file}.html
+	echo '[done]'
+done
+
+##########################################
 # Step 40: Import into spreadsheet
 
+MACROLOC="$HOME/.config/libreoffice/4/user/basic/CollGS"
+mkdir -p "$MACROLOC"
+
+cat <<EOF >> "$MACROLOC/Module1.xba"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">REM  *****  BASIC  *****
+
+Sub Main
+Dim sheet As Object
+Dim document As Object
+Dim Dummy()
+
+document = StarDesktop.loadComponentFromURL(&quot;file://${WRKD}/${XLSBASE}&quot;, &quot;_blank&quot;, 0, Dummy)
+
+sheet = thisComponent.getSheets.getByName(&quot;RetrieveStats&quot;)
+sheet.link(&quot;file://${WRKD}/retrieved_report.html&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, com.sun.star.sheet.SheetLinkMode.NORMAL)
+
+sheet = thisComponent.getSheets.getByName(&quot;DistributedStats&quot;)
+sheet.link(&quot;file://${WRKD}/distributed_report.html&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, com.sun.star.sheet.SheetLinkMode.NORMAL)
+
+sheet = thisComponent.getSheets.getByName(&quot;BandwidthStats&quot;)
+sheet.link(&quot;file://${WRKD}/client_Bandwith_usage_report.html&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, com.sun.star.sheet.SheetLinkMode.NORMAL)
+
+document.store()
+document.close(True)
+
+end sub
+
+</script:module>
+EOF
+
+printf "Running LibreOffice to update the document at ${WRKD}/${XLSBASE} "
+libreoffice --invisible --nofirststartwizard --headless --norestore "macro:///CollGS.Module1.Main"
+echo '[done]'
 
 
 ##########################################
 # Step 50: Upload to Jira
+
+
+##########################################
+# Step 60: Cleanup
 
 
 
