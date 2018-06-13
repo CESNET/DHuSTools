@@ -42,6 +42,15 @@ while getopts "hc:o:l:n:f:w:t:" opt; do
 done
 
 FROM=`date -d "${TILL}-${NDAYS} days" +%Y-%m-%d`
+WEEKTILL=`date -d "${TILL}" +%V`
+WEEKFROM=`date -d "${FROM}" +%V`
+if [ "${WEEKFROM}" == "${WEEKTILL}" ]; then
+	WEEK="${WEEKTILL}"
+else
+	WEEK="${WEEKFROM}to${WEEKTILL}"
+fi
+YEAR=`date -d "${FROM}" +%Y`
+
 
 ##########################################
 # Step 03: Atrribute constraints check
@@ -177,6 +186,14 @@ printf "Running LibreOffice to update the document at ${WRKLOGS}/${XLSBASE} "
 libreoffice --invisible --nofirststartwizard --headless --norestore "macro:///CollGS.Module1.Main"
 echo '[done]'
 
+##########################################
+# Step 45: Encrypt
+
+mkdir "${YEAR}w${WEEK}_reports"
+
+cp "${XLSBASE}" "${YEAR}w${WEEK}_reports/"
+tar cvvf ./${YEAR}w${WEEK}_reports.tar ${YEAR}w${WEEK}_reports
+gzip ${YEAR}w${WEEK}_reports.tar
 
 ##########################################
 # Step 50: Upload to Jira
