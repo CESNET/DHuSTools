@@ -79,24 +79,26 @@ for i in `seq 0 $NDAYS`; do
 	LDAYS+=(`date -d "${TILL}-${i} days" +%Y-%m-%d`)
 done
 
-for DATE in "${LDAYS[@]}"; do
-	echo $DATE
-done
+#for DATE in "${LDAYS[@]}"; do
+#	echo $DATE
+#done
 
 ##########################################
 # Step 10: Download all logs
 
-mkdir -p "$WRKD/logs.$$/"
-WRKLOGS="$WRKD/logs.$$/"
+mkdir -p "$WRKD/logs.$$"
+WRKLOGS="$WRKD/logs.$$"
 
 while read remote; do
 	remtok=(${remote//:/ })
 	echo Downloading logs from ${remtok[0]} \(remote path ${remtok[1]}\)
 
 	for DATE in "${LDAYS[@]}"; do
-		ssh remtok[0] "cat ${remtok[1]}/dhus-${DATE}.log" >> "${WRKLOGS}/dhus-${DATE}.log"
+		scp $remote/dhus-${DATE}.log "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
+		cat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log"
+		rm "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
+#		ssh ${remtok[0]} "cat ${remtok[1]}/dhus-${DATE}.log" >> "${WRKLOGS}/dhus-${DATE}.log"
 	done
-	
 
 done < ${REMOTES}
 
@@ -108,6 +110,13 @@ done < ${REMOTES}
 ##########################################
 # Step 30: Run Statistics
 
+SAVEPWD=`pwd`
+cp -v "${STATSCRIPT}" "${WRKLOGS}/"
+STATBASE=`basename "${STATSCRIPT}"`
+cd ${WRKLOGS}
+echo Running ${STATSCRIPT} in ${WRKLOGS}
+sed --in-place 's/^log_dir=.*$/log_dir=".\/"/' "./${STATBASE}"
+${STATSCRIPT} "${FROM}" "${TILL}" "./"
 
 
 ##########################################
