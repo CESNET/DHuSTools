@@ -41,6 +41,29 @@ while getopts "hc:o:l:n:f:w:t:" opt; do
   esac
 done
 
+function check_exec()
+{
+	local ret=`which $1 2> /dev/null`
+	if [ -n "$ret" -a -x "$ret" ]; then
+		return $TEST_OK
+	else
+		return $TEST_ERROR
+	fi
+}
+
+function check_binaries()
+{
+	for file in $@; do
+		ret=`which $file 2> /dev/null`
+		if [ -n "$ret" -a -x "$ret" ]; then
+			echo $ret
+	        else
+			echo "command $file not found" >&2
+			exit 1
+	        fi
+	done
+}
+
 FROM=`date -d "${TILL}-${NDAYS} days" +%Y-%m-%d`
 WEEKTILL=`date -d "${TILL}" +%V`
 WEEKFROM=`date -d "${FROM}" +%V`
@@ -50,6 +73,13 @@ else
 	WEEK="${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
+
+
+##########################################
+# Step 02: Test prerequisites
+
+echo Checking prerequisites
+check_binaries sed libreoffice scp tar gzip basename date cat cp curl
 
 
 ##########################################
@@ -197,6 +227,9 @@ gzip ${YEAR}w${WEEK}_reports.tar
 
 ##########################################
 # Step 50: Upload to Jira
+
+#curl -D- -u {username}:{password} -X POST -H "X-Atlassian-Token: nocheck" -F "file=@{path/to/file}" http://{base-url}/rest/api/2/issue/{issue-key}/attachments
+
 
 
 ##########################################
