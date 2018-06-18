@@ -2,6 +2,7 @@
 
 STATSCRIPT="./DataHubStats_TiB.sh"
 XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.2.xlsx"
+XLSPREFIX="CRDR"
 REMOTES="./.remotes"
 NDAYS=6
 TILL=`date -d "yesterday" +%Y-%m-%d`
@@ -73,14 +74,19 @@ else
 	WEEK="${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
+XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.2.xlsx"
 
 
 ##########################################
 # Step 02: Test prerequisites
 
 echo Checking prerequisites
-check_binaries sed libreoffice scp tar gzip basename date cat cp curl
+check_binaries sed libreoffice scp tar gzip basename date cat cp curl grep
 
+if [ ! -f $HOME/.netrc ]; then
+	echo File "$HOME/.netrc" not found. Upload to Jira would fail
+	exit 1
+fi
 
 ##########################################
 # Step 03: Atrribute constraints check
@@ -151,9 +157,9 @@ done < ${REMOTES}
 
 SAVEPWD=`pwd`
 cp -v "${STATSCRIPT}" "${WRKLOGS}/"
-cp -v "${XLS}" "${WRKLOGS}/"
+cp -v "${XLS}" "${WRKLOGS}/${XLSTARGET}"
 STATBASE=`basename "${STATSCRIPT}"`
-XLSBASE=`basename "${XLS}"`
+XLSBASE=`basename "${XLSTARGET}"`
 cd ${WRKLOGS}
 echo Running ${STATSCRIPT} in ${WRKLOGS}
 sed --in-place 's/^log_dir=.*$/log_dir=".\/"/' "./${STATBASE}"
@@ -180,10 +186,10 @@ done
 ##########################################
 # Step 40: Import into spreadsheet
 
-MACROLOC="$HOME/.config/libreoffice/4/user/basic/CollGS"
+MACROLOC="$HOME/.config/libreoffice/4/user/basic/Standard"
 mkdir -p "$MACROLOC"
 
-cat <<EOF > "$MACROLOC/Module1.xba"
+cat <<EOF > "$MACROLOC/CollGS.xba"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
 <script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">REM  *****  BASIC  *****
@@ -213,7 +219,7 @@ end sub
 EOF
 
 printf "Running LibreOffice to update the document at ${WRKLOGS}/${XLSBASE} "
-libreoffice --invisible --nofirststartwizard --headless --norestore "macro:///CollGS.Module1.Main"
+libreoffice --invisible --nofirststartwizard --headless --norestore "macro:///Standard.CollGS.Main"
 echo '[done]'
 
 ##########################################
@@ -228,8 +234,7 @@ gzip ${YEAR}w${WEEK}_reports.tar
 ##########################################
 # Step 50: Upload to Jira
 
-#curl -D- -u {username}:{password} -X POST -H "X-Atlassian-Token: nocheck" -F "file=@{path/to/file}" http://{base-url}/rest/api/2/issue/{issue-key}/attachments
-
+curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments
 
 
 ##########################################
