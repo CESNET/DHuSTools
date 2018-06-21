@@ -1,7 +1,7 @@
 #!/bin/bash
 
 STATSCRIPT="./DataHubStats_TiB.sh"
-XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.2.xlsx"
+XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.3.xlsx"
 XLSPREFIX="CRDR"
 REMOTES="./.remotes"
 NDAYS=6
