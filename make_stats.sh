@@ -79,7 +79,7 @@ else
 	WEEK="${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
-XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.2.xlsx"
+XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.3.xlsx"
 
 
 ##########################################
