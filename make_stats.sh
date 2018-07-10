@@ -1,14 +1,15 @@
 #!/bin/bash
 
 STATSCRIPT="./DataHubStats_TiB.sh"
-XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.2.xlsx"
+XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.3.xlsx"
 XLSPREFIX="CRDR"
 REMOTES="./.remotes"
 NDAYS=6
 TILL=`date -d "yesterday" +%Y-%m-%d`
 WRKD="/tmp"
+DRY=0
 
-while getopts "hc:o:l:n:f:w:t:" opt; do
+while getopts "hdc:o:l:n:f:w:t:" opt; do
   case $opt in
         h)
                 printf "Collect, run and export DHuS Relay statistics\n\nUsage:\n
@@ -17,12 +18,16 @@ while getopts "hc:o:l:n:f:w:t:" opt; do
 \t-l <str>\tPath to a file containing remote paths\n\t\t\t(Default \"${REMOTES}\")\n \
 \t-w <str>\tPath to the working directory (Default \"${WRKD}\")\n \
 \t-n <num>\tStart reporting period <num> days\n\t\t\tBEFORE the final date (Default ${NDAYS})\n \
+\t-d      \tDry run. Do everything but do not upload to Jira.\n \
 \t-t <Y-M-D>\t\"Till\" Date (Default \"${TILL}\")\n \
 		\n"
                 exit 0
                 ;;
 	c)
 		STATSCRIPT=$OPTARG
+                ;;
+	d)
+		DRY=1
                 ;;
 	o)
 		XLS=$OPTARG
@@ -74,7 +79,7 @@ else
 	WEEK="${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
-XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.2.xlsx"
+XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.3.xlsx"
 
 
 ##########################################
@@ -234,13 +239,17 @@ gzip ${YEAR}w${WEEK}_reports.tar
 ##########################################
 # Step 50: Upload to Jira
 
-curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments
+if [ $DRY -eq 0 ]; then
 
+	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments
+
+fi
 
 ##########################################
 # Step 60: Cleanup
 
 echo Removing temporary files from ${WRKLOGS}
 
+#TODO: Actually remove files
 
 
