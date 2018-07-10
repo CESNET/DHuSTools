@@ -46,6 +46,9 @@ while getopts "hdc:o:l:n:f:w:t:j:" opt; do
 	t)
 		TILL=$OPTARG
                 ;;
+	j)
+		JISSUE=$OPTARG
+                ;;
   esac
 done
 
