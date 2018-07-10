@@ -8,8 +8,9 @@ NDAYS=6
 TILL=`date -d "yesterday" +%Y-%m-%d`
 WRKD="/tmp"
 DRY=0
+JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments"
 
-while getopts "hdc:o:l:n:f:w:t:" opt; do
+while getopts "hdc:o:l:n:f:w:t:j:" opt; do
   case $opt in
         h)
                 printf "Collect, run and export DHuS Relay statistics\n\nUsage:\n
@@ -19,6 +20,7 @@ while getopts "hdc:o:l:n:f:w:t:" opt; do
 \t-w <str>\tPath to the working directory (Default \"${WRKD}\")\n \
 \t-n <num>\tStart reporting period <num> days\n\t\t\tBEFORE the final date (Default ${NDAYS})\n \
 \t-d      \tDry run. Do everything but do not upload to Jira.\n \
+\t-j <url>\tUpload URL (default \"${JISSUE}\")\n \
 \t-t <Y-M-D>\t\"Till\" Date (Default \"${TILL}\")\n \
 		\n"
                 exit 0
@@ -241,7 +243,7 @@ gzip ${YEAR}w${WEEK}_reports.tar
 
 if [ $DRY -eq 0 ]; then
 
-	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments
+	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" "${JISSUE}"
 
 fi
 
