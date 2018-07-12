@@ -5,12 +5,13 @@ NETRCOPT="-n"
 FROM=`date -d "yesterday-30 days" +%Y-%m-%d`
 VERBOSE=0
 
-while getopts "hvn:f:" opt; do
+while getopts "hvn:f:u:" opt; do
   case $opt in
         h)
                 printf "Generate a list of L1 products (Sentinel2) that do not have a matching L2A product.\n\nUsage:\n
 \t-h      \tDisplay this help\n \
 \t-n <str>\tpath to an altarnative .netrc file (default ~/.netrc)\n \
+\t-u <str>\tusername:password to be used instead of .netrc\n \
 \t-f <Y-M-D>\tStarting date (default ${FROM})\n \
 \t-v      \tVerbose: May add more output, preserves working directory\n \
 \n\n"
@@ -18,6 +19,9 @@ while getopts "hvn:f:" opt; do
                 ;;
         n)
 		NETRCOPT="--netrc-file ${OPTARG}"
+                ;;
+        u)
+		NETRCOPT="-u \"${OPTARG}\""
                 ;;
         f)
 		FROM="${OPTARG}"
