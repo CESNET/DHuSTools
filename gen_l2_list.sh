@@ -1,5 +1,9 @@
 #!/bin/bash
 
+
+declare -A TILELIST
+TILELIST["cz"]="_T32UPA_|_T32UPB_|_T32UQA_|_T32UQB_|_T32UQU_|_T32UQV_|_T33UUP_|_T33UUQ_|_T33UUR_|_T33UUS_|_T33UVP_|_T33UVQ_|_T33UVR_|_T33UVS_|_T33UWP_|_T33UWQ_|_T33UWR_|_T33UWS_|_T33UXP_|_T33UXQ_|_T33UXR_|_T33UXS_|_T33UYP_|_T33UYQ_|_T33UYR_|_T33UYS_|_T34UCA_|_T34UCV_|_T34UDA_"
+
 WRKD="/tmp"
 VARTMP="/var/tmp/gen_l2_list"
 NETRCOPT="-n"
@@ -7,8 +11,9 @@ TODAY=`date -d "today" +%Y-%m-%d`
 FROM=`date -d "yesterday-30 days" +%Y-%m-%d`
 VERBOSE=0
 NDAYS=3
+CFILTER=""
 
-while getopts "hvn:f:u:p:" opt; do
+while getopts "hvn:f:u:p:c:" opt; do
   case $opt in
         h)
                 printf "Generate a list of L1 products (Sentinel2) that do not have a matching L2A product.\n\nUsage:\n
@@ -17,6 +22,7 @@ while getopts "hvn:f:u:p:" opt; do
 \t-u <str>\tusername:password to be used instead of .netrc\n \
 \t-f <Y-M-D>\tStarting date (default ${FROM})\n \
 \t-p <num>\tdisregard files already returned within past 'p' days (default ${NDAYS})\n \
+\t-c <str>\tcountry, or any custom tile list, to use as filter (known: cz)\n \
 \t-v      \tVerbose: May add more output, preserves working directory\n \
 \n\n"
                 exit 0
@@ -32,6 +38,15 @@ while getopts "hvn:f:u:p:" opt; do
                 ;;
         p)
 		NDAYS="${OPTARG}"
+                ;;
+        c)
+		COUNTRY="${OPTARG}"
+		if [ -v ${TILELIST["$COUNTRY"]} ]; then
+			>&2 echo Country \"$COUNTRY\" unknown
+			exit 1
+		else
+			CFILTER="${TILELIST["$COUNTRY"]}"
+		fi
                 ;;
         v)
 		VERBOSE=1
@@ -92,6 +107,14 @@ get_list _MSIL1C_ > l1raw.csv
 
 get_list _MSIL2A_ > l2raw.csv
 
+
+##########################################
+# Step 25: Apply country filter
+
+if [ "$CFILTER" != "" ]; then
+	egrep "$CFILTER" l1raw.csv > l1raw.filtered.csv; mv -f l1raw.filtered.csv l1raw.csv
+	egrep "$CFILTER" l2raw.csv > l2raw.filtered.csv; mv -f l2raw.filtered.csv l2raw.csv
+fi
 
 ##########################################
 # Step 30: Make lists comparable
