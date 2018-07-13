@@ -13,7 +13,7 @@ VERBOSE=0
 NDAYS=3
 CFILTER=""
 
-while getopts "hvn:f:u:p:c:" opt; do
+while getopts "hvn:f:u:p:c:t:" opt; do
   case $opt in
         h)
                 printf "Generate a list of L1 products (Sentinel2) that do not have a matching L2A product.\n\nUsage:\n
@@ -23,6 +23,7 @@ while getopts "hvn:f:u:p:c:" opt; do
 \t-f <Y-M-D>\tStarting date (default ${FROM})\n \
 \t-p <num>\tdisregard files already returned within past 'p' days (default ${NDAYS})\n \
 \t-c <str>\tcountry, or any custom tile list, to use as filter (known: cz)\n \
+\t-t <str>\tsemi-permanent location to store previous result lists (default: $VARTMP)\n \
 \t-v      \tVerbose: May add more output, preserves working directory\n \
 \n\n"
                 exit 0
@@ -47,6 +48,9 @@ while getopts "hvn:f:u:p:c:" opt; do
 		else
 			CFILTER="${TILELIST["$COUNTRY"]}"
 		fi
+                ;;
+        t)
+		VARTMP="${OPTARG}"
                 ;;
         v)
 		VERBOSE=1
@@ -95,6 +99,7 @@ PWD=`pwd`
 mkdir -p "${WRKD}/l2comp.$$"
 cd "${WRKD}/l2comp.$$"
 mkdir -p "${VARTMP}"
+if [ $? -gt 0 ]; then echo Failed creating directory \"$VARTMP\"; exit 1; fi
 
 ##########################################
 # Step 10: List L1C files
