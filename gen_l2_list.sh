@@ -95,6 +95,8 @@ if [ "$URL" == "" ]; then
 	exit 1
 fi
 
+# TODO: Check binaries
+
 PWD=`pwd`
 mkdir -p "${WRKD}/l2comp.$$"
 cd "${WRKD}/l2comp.$$"
