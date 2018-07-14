@@ -79,7 +79,7 @@ get_list() {
         let COUNT=$PAGESIZE+1
         while [ $COUNT -gt $PAGESIZE ]; do
                 COUNT=0
-                SEG=$(curl -sS ${NETRCOPT} ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,Id\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=CreationDate%20gt%20datetime%27${SSTRING}%27%20and%20startswith\(Name,%27S2%27\)%20and%20substringof\(%27${PTYPE}%27,Name\))
+                SEG=$(curl -sS ${NETRCOPT} ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,Id\&%24skip=${SKIP}\&%24top=${PAGESIZE}\&%24filter=CreationDate%20gt%20datetime%27${SSTRING}%27%20and%20startswith%28Name,%27S2%27%29%20and%20substringof%28%27${PTYPE}%27,Name%29)
                 while read -r line; do
                         if [ $COUNT -ne 0 ]; then
                                 echo $line;
