@@ -12,12 +12,14 @@ FROM=`date -d "yesterday-30 days" +%Y-%m-%d`
 VERBOSE=0
 NDAYS=3
 CFILTER=""
+DRY=0
 
-while getopts "hvn:f:u:p:c:t:" opt; do
+while getopts "hvdn:f:u:p:c:t:" opt; do
   case $opt in
         h)
                 printf "Generate a list of L1 products (Sentinel2) that do not have a matching L2A product.\n\nUsage:\n
 \t-h      \tDisplay this help\n \
+\t-d      \tDry run: do not store results at all\n \
 \t-n <str>\tpath to an altarnative .netrc file (default ~/.netrc)\n \
 \t-u <str>\tusername:password to be used instead of .netrc\n \
 \t-f <Y-M-D>\tStarting date (default ${FROM})\n \
@@ -54,6 +56,9 @@ while getopts "hvn:f:u:p:c:t:" opt; do
                 ;;
         v)
 		VERBOSE=1
+                ;;
+        d)
+		DRY=1
                 ;;
   esac
 done
@@ -154,7 +159,9 @@ fi
 ##########################################
 # Step 60: Output results
 
-cat product_list.txt >> "${VARTMP}/${TODAY}"
+if [ $DRY -eq 0 ]; then
+	cat product_list.txt >> "${VARTMP}/${TODAY}"
+fi
 cat product_list.txt
 
 debug "A total of `wc -l product_list.txt | awk '{ print $1 }'` products found for processing.\nFound `wc -l l1raw.csv | awk '{ print $1 }'` L1 and `wc -l l2raw.csv | awk '{ print $1 }'` L2 products for the given period.\n"
