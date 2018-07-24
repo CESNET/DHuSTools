@@ -1,18 +1,23 @@
 #!/bin/bash
 
 FILTER=""
+QUERIES=0
 
-while getopts "hf:" opt; do
+while getopts "hf:q" opt; do
   case $opt in
         h)
                 printf "Parse DHuS logs and generate bandwidth charts.\n\nUsage:\n
 \t-h      \tDisplay this help\n \
+\t-q      \tAlso plot representations of query waiting time(s)\n \
 \t-f <str>\tCustom plot data filter (passed to grep -E before plotting the data\n \
 \n\n"
                 exit 0
                 ;;
         f)
                 FILTER="${OPTARG}"
+                ;;
+        q)
+                QUERIES=1
                 ;;
   esac
 done
@@ -26,16 +31,22 @@ fi
 
 PLOT=""
 PID=$$
+OUTDIR="outfiles.${PID}"
 
 echo Generating out files by endpoint
+mkdir -p "${OUTDIR}"
 for f in $MASK; do
-	cat $f | grep "successfully [a-z]* from" | grep "zip'" | sed 's/\[[0-9.-]*\]\s*\[\([0-9: -]*\),[0-9]*\].*(\([0-9]*\) bytes compressed).* from http[s]*:\/\/\([^/]*\).*in \([0-9]*\) ms.*/\1 \2 \4 \3/' | awk -v pid="$PID" '{ outfile=$5"."pid".out"; print $1" "$2" "$3" "$4" "$5 >> outfile }'
+	cat $f | grep "successfully [a-z]* from" | grep "zip'" | sed 's/\[[0-9.-]*\]\s*\[\([0-9: -]*\),[0-9]*\].*(\([0-9]*\) bytes compressed).* from http[s]*:\/\/\([^/]*\).*in \([0-9]*\) ms.*/\1 \2 \4 \3/' | awk -v outdir="$OUTDIR" '{ outfile=outdir"/"$5; print $1" "$2" "$3" "$4" "$5 >> outfile }'
 done
 
-wc -l *.${PID}.out
+if [ $QUERIES -eq 1 ]; then
+	cat $f | grep "query(Products)" | sed 's/\[[0-9.-]*\]\s*\[\([0-9: -]*\),[0-9]*\].*Synchronizer#\(\S*\)\s.*in \([0-9][0-9]*\)ms.*/\1 \30000 \3 Syncer\2/' | awk -v outdir="$OUTDIR" '{ outfile=outdir"/"$5; print $1" "$2" "$3" "$4" "$5 >> outfile }'
+fi
+
+wc -l $OUTDIR/*
 
 echo Generating plot data
-for f in *.${PID}.out; do
+for f in $OUTDIR/*; do
 	BN=`basename $f`
 	cat $f | awk -v f="$f" '{
 	etime=$1" "$2;
@@ -80,5 +91,5 @@ EOF
 gnuplot plot.dat
 
 rm out.*.$$.dat
-rm *.${PID}.out
+rm -rf "${OUTDIR}"
 
