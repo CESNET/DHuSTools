@@ -1,9 +1,27 @@
 #!/bin/bash
 
-if [ "$1" == "" ]; then
+FILTER=""
+
+while getopts "hf:" opt; do
+  case $opt in
+        h)
+                printf "Parse DHuS logs and generate bandwidth charts.\n\nUsage:\n
+\t-h      \tDisplay this help\n \
+\t-f <str>\tCustom plot data filter (passed to grep -E before plotting the data\n \
+\n\n"
+                exit 0
+                ;;
+        f)
+                FILTER="${OPTARG}"
+                ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+MASK=$1
+
+if [ "$MASK" == "" ]; then
 	MASK="*.log"
-else
-	MASK=$1
 fi
 
 PLOT=""
@@ -39,6 +57,12 @@ for f in *.${PID}.out; do
 	printf "%s %s %0.1f\n", $2, $1, oldsum
 	printf "%s %s %0.1f\n", $2, $1, sum
 }' > out.$BN.$$.dat
+
+if [ "$FILTER" != "" ]; then
+	grep -E "${FILTER}" out.$BN.$$.dat > out.$BN.$$.dat.grepped
+	mv -f out.$BN.$$.dat.grepped out.$BN.$$.dat
+fi
+
 PLOT="${PLOT}\"out.${BN}.$$.dat\" u 2:4 w l, "
 done 
 
