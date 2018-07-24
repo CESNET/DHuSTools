@@ -80,4 +80,5 @@ EOF
 gnuplot plot.dat
 
 rm out.*.$$.dat
+rm *.${PID}.out
 
