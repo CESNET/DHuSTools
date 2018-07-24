@@ -6,11 +6,19 @@ else
 fi
 
 PLOT=""
+PID=$$
 
-for f in $MASK; do 
+echo Generating out files by endpoint
+for f in $MASK; do
+	cat $f | grep "successfully [a-z]* from" | grep "zip'" | sed 's/\[[0-9.-]*\]\s*\[\([0-9: -]*\),[0-9]*\].*(\([0-9]*\) bytes compressed).* from http[s]*:\/\/\([^/]*\).*in \([0-9]*\) ms.*/\1 \2 \4 \3/' | awk -v pid="$PID" '{ outfile=$5"."pid".out"; print $1" "$2" "$3" "$4" "$5 >> outfile }'
+done
 
-BN=`basename $f`	
-cat $f | grep "stored in synchronized-hfs-without-copy datastore" | grep "zip:" | sed 's/\[[0-9.-]*\]\s*\[\([0-9: -]*\),[0-9]*\].*:\([0-9]*\)\].*in \([0-9]*\)ms.*$/\1 \2 \3/' | awk -v f="$f" '{
+wc -l *.${PID}.out
+
+echo Generating plot data
+for f in *.${PID}.out; do
+	BN=`basename $f`
+	cat $f | awk -v f="$f" '{
 	etime=$1" "$2;
 	gsub(":"," ",etime);
 	gsub("-"," ",etime);
@@ -38,7 +46,7 @@ set xdata time
 set timefmt "%Y-%m-%d %H:%M:%S"
 set format x "$d.%m. %H:%M:%S"
 
-set terminal pdf size 11.69,8.27
+set terminal pdf size 19.20,10.80
 set output "out.pdf"
 
 plot $PLOT
