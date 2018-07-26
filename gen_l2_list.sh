@@ -12,12 +12,14 @@ FROM=`date -d "yesterday-30 days" +%Y-%m-%d`
 VERBOSE=0
 NDAYS=3
 CFILTER=""
+DRY=0
 
-while getopts "hvn:f:u:p:c:t:" opt; do
+while getopts "hvdn:f:u:p:c:t:" opt; do
   case $opt in
         h)
                 printf "Generate a list of L1 products (Sentinel2) that do not have a matching L2A product.\n\nUsage:\n
 \t-h      \tDisplay this help\n \
+\t-d      \tDry run: do not store results at all\n \
 \t-n <str>\tpath to an altarnative .netrc file (default ~/.netrc)\n \
 \t-u <str>\tusername:password to be used instead of .netrc\n \
 \t-f <Y-M-D>\tStarting date (default ${FROM})\n \
@@ -55,6 +57,9 @@ while getopts "hvn:f:u:p:c:t:" opt; do
         v)
 		VERBOSE=1
                 ;;
+        d)
+		DRY=1
+                ;;
   esac
 done
 
@@ -79,7 +84,7 @@ get_list() {
         let COUNT=$PAGESIZE+1
         while [ $COUNT -gt $PAGESIZE ]; do
                 COUNT=0
-                SEG=$(curl -sS ${NETRCOPT} ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,Id\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=CreationDate%20gt%20datetime%27${SSTRING}%27%20and%20startswith\(Name,%27S2%27\)%20and%20substringof\(%27${PTYPE}%27,Name\))
+                SEG=$(curl -sS ${NETRCOPT} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20gt%20datetime%27${SSTRING}%27%20and%20startswith%28Name,%27S2%27%29%20and%20substringof%28%27${PTYPE}%27,Name%29")
                 while read -r line; do
                         if [ $COUNT -ne 0 ]; then
                                 echo $line;
@@ -94,6 +99,8 @@ if [ "$URL" == "" ]; then
 	>&2 echo "You must specify DHuS endpoint (e.g., https://dhr1.cesnet.cz)"
 	exit 1
 fi
+
+# TODO: Check binaries
 
 PWD=`pwd`
 mkdir -p "${WRKD}/l2comp.$$"
@@ -152,7 +159,9 @@ fi
 ##########################################
 # Step 60: Output results
 
-cat product_list.txt >> "${VARTMP}/${TODAY}"
+if [ $DRY -eq 0 ]; then
+	cat product_list.txt >> "${VARTMP}/${TODAY}"
+fi
 cat product_list.txt
 
 debug "A total of `wc -l product_list.txt | awk '{ print $1 }'` products found for processing.\nFound `wc -l l1raw.csv | awk '{ print $1 }'` L1 and `wc -l l2raw.csv | awk '{ print $1 }'` L2 products for the given period.\n"

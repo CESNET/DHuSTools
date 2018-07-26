@@ -1,5 +1,5 @@
 # DHuSTools
-Small tools developed to accompany ESA DHuS instances
+Small tools developed to accompany ESA DHuS instances.
 
 ## get\_totals.sh
 
@@ -16,4 +16,8 @@ Generates a list of Sentinel2 L1C products in the target site that do not yet ha
 ## format\_dhus\_log.sh
 
 Reads log files written by DHuS and produces a chart showing download speeds from various identified sources over time.
+
+# Gist
+
+The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
 
