@@ -1,5 +1,5 @@
 # DHuSTools
-Small tools developed to accompany ESA DHuS instances
+Small tools developed to accompany ESA DHuS instances.
 
 ## get\_totals.sh
 
@@ -12,4 +12,8 @@ Intended to be run by `cron`. It does not produce the statistics itself but rath
 ## gen\_l2\_list.sh
 
 Generates a list of Sentinel2 L1C products in the target site that do not yet have a matching L2A product with atmospheric correction, produced with `Sen2cor`.
+
+# Gist
+
+The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, et cetera.
 
