@@ -15,5 +15,5 @@ Generates a list of Sentinel2 L1C products in the target site that do not yet ha
 
 # Gist
 
-The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, et cetera.
+The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
 
