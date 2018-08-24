@@ -48,18 +48,17 @@ wc -l $OUTDIR/*
 echo Generating plot data
 for f in $OUTDIR/*; do
 	BN=`basename $f`
-	cat $f | awk -v f="$f" '{
+	cat $f | awk -v f="$BN" '{
 	etime=$1" "$2;
 	gsub(":"," ",etime);
 	gsub("-"," ",etime);
 	ets=mktime(etime);
 	dura=($4==0)? 0 : $4/1000;
 	sts=ets-dura
-	print $1 $2 $3 $4 $5
 	bw=($4==0)? 0 : $3/$4/1000;
-	print strftime("%Y-%m-%e %H:%M:%S", sts) "," f "," bw;
-	print strftime("%Y-%m-%e %H:%M:%S", ets) "," f ",-" bw;
-}' | sort | awk -v f="$f" -F "\"*,\"*" 'BEGIN{
+	print strftime("%04Y-%02m-%02e %02H:%02M:%02S", sts) "," f "," bw;
+	print strftime("%04Y-%02m-%02e %02H:%02M:%02S", ets) "," f ",-" bw;
+}' | sort | awk -v f="$BN" -F "\"*,\"*" 'BEGIN{
 	sum=0;
 	printf "\n\n", f
 } {
