@@ -6,6 +6,7 @@ ATTRIBUTE="CreationDate"
 LIST=0
 PREFIX=""
 MATCH=""
+UPWD="-n"
 
 while getopts "hn:u:ticlp:m:" opt; do
   case $opt in
@@ -24,7 +25,7 @@ while getopts "hn:u:ticlp:m:" opt; do
 		exit 0
 		;;
 	u)
-		UPWD=$OPTARG
+		UPWD="-u \"$OPTARG\""
 		;;
 	n)
 		NUM=$OPTARG
@@ -69,7 +70,7 @@ for i in `seq 1 $NUM`; do
 	MSTRING=`date -d @$START "+%Y-%m-%d"`
 
 	printf "\n$MSTRING,"
-	curl -u "$UPWD" ${URL}/odata/v1/Products//%24count?%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27%20and%20${ATTRIBUTE}%20lt%20datetime%27${ESTRING}%27${PREFIX}${MATCH}
+	curl $UPWD ${URL}/odata/v1/Products//%24count?%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27%20and%20${ATTRIBUTE}%20lt%20datetime%27${ESTRING}%27${PREFIX}${MATCH}
 	if [ $? -gt 0 ]; then
 		break
 	fi
@@ -89,7 +90,7 @@ get_list() {
 	let COUNT=$PAGESIZE+1
 	while [ $COUNT -gt $PAGESIZE ]; do
 		COUNT=0
-		SEG=$(curl -sS -u "$UPWD" ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${ATTRIBUTE}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27${PREFIX}${MATCH})
+		SEG=$(curl -sS $UPWD ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${ATTRIBUTE}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27${PREFIX}${MATCH})
 		while read -r line; do
 			if [ $COUNT -ne 0 ]; then
 				echo $line;
