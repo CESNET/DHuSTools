@@ -11,7 +11,7 @@ DRY=0
 JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments"
 XTRAARG=""
 
-while getopts "hdc:o:l:n:f:w:t:j:" opt; do
+while getopts "hdc:o:l:n:f:w:t:j:x:" opt; do
   case $opt in
         h)
                 printf "Collect, run and export DHuS Relay statistics\n\nUsage:\n
