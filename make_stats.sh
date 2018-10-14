@@ -1,7 +1,7 @@
 #!/bin/bash
 
 STATSCRIPT="./DataHubStats_TiB.sh"
-XLS="./DHRNAME_report_referenceperiod_DataHubStats_v2.3.xlsx"
+XLS="./DHRNAME_report_referenceperiod.xlsx"
 XLSPREFIX="CRDR"
 REMOTES="./.remotes"
 NDAYS=6
@@ -89,7 +89,7 @@ else
 	WEEK="${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
-XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats_v2.3.xlsx"
+XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats.xlsx"
 
 
 ##########################################
