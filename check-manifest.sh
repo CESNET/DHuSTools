@@ -83,7 +83,7 @@ BN=`basename -s .zip $FN`
 MAN=`unzip -Z1 $FN | grep manifest`
 unzip -qq $FN $MAN
 #Take only 'href="..."' sections from the manifest, which is in XML, and write them in a list
-cat $MAN | egrep -o 'href="[^"]*"' | sed 's/^href="//' | sed 's/"$//' | sort > $BN.manifest.lst
+cat $MAN | egrep -o 'href="[^"]*"' | sed 's/^href="[./]*//' | sed 's/"$//' | sort > $BN.manifest.lst
 
 #List all files in the ZIP, remove the leading directory name and remove directory names (leave only regular files)
 unzip -Z1 $FN | sed "s/$BN\\.SAFE\///" | egrep -v "/$" | sort > $BN.real.lst
