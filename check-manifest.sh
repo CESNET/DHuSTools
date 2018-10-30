@@ -56,8 +56,8 @@ else
 
 		#Have product name translated to ID
 		ID=$(curl -s $UPWD ${HOST}odata/v1/Products?%24format=text/csv\&%24select=Id\&%24filter=Name%20eq%20%27$BN%27 | tail -n 1 | sed 's/\r//' )
-		if [ $ID == 'Id' ]; then
-			>&2 echo Product with name \"$SEC\" not found
+		if [ "$ID" == 'Id' -o "$ID" == "" ]; then
+			>&2 echo Product with name \"$BN\" not found
 			exit 1
 		fi
 		URL="${HOST}odata/v1/Products('$ID')/\$value"
