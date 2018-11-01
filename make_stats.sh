@@ -84,13 +84,18 @@ FROM=`date -d "${TILL}-${NDAYS} days" +%Y-%m-%d`
 WEEKTILL=`date -d "${TILL}" +%V`
 WEEKFROM=`date -d "${FROM}" +%V`
 if [ "${WEEKFROM}" == "${WEEKTILL}" ]; then
-	WEEK="${WEEKTILL}"
+	WEEK="w${WEEKTILL}"
 else
-	WEEK="${WEEKFROM}to${WEEKTILL}"
+	WEEK="w${WEEKFROM}to${WEEKTILL}"
 fi
 YEAR=`date -d "${FROM}" +%Y`
 XLSTARGET="${XLSPREFIX}_report_${FROM}_to_${TILL}_DataHubStats.xlsx"
 
+# Use special name if report between 1st and last day of month
+if [ `date -d ${FROM} +%m` -eq `date -d ${TILL} +%m` ] && [ `date -d ${FROM} +%d` -eq 1 ] && [ `date -d "${TILL} + 1 day" +%d` -eq 1 ]; then
+  XLSTARGET="${XLSPREFIX}_Annual_report_`date -d ${FROM} +%m`_`date -d ${FROM} +%Y`.xlsx"
+  WEEK="m`date -d ${FROM} +%m`"
+fi
 
 ##########################################
 # Step 02: Test prerequisites
@@ -240,18 +245,18 @@ echo '[done]'
 ##########################################
 # Step 45: Encrypt
 
-mkdir "${YEAR}w${WEEK}_reports"
+mkdir "${YEAR}${WEEK}_reports"
 
-cp "${XLSBASE}" "${YEAR}w${WEEK}_reports/"
-tar cvvf ./${YEAR}w${WEEK}_reports.tar ${YEAR}w${WEEK}_reports
-gzip ${YEAR}w${WEEK}_reports.tar
+cp "${XLSBASE}" "${YEAR}${WEEK}_reports/"
+tar cvvf ./${YEAR}${WEEK}_reports.tar ${YEAR}${WEEK}_reports
+gzip ${YEAR}${WEEK}_reports.tar
 
 ##########################################
 # Step 50: Upload to Jira
 
 if [ $DRY -eq 0 ]; then
 
-	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}w${WEEK}_reports.tar.gz" ${XTRAARG} "${JISSUE}"
+	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}${WEEK}_reports.tar.gz" ${XTRAARG} "${JISSUE}"
 
 fi
 
