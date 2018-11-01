@@ -3,6 +3,7 @@
 NUM=14
 LAST=0
 ATTRIBUTE="CreationDate"
+SELATTR="${ATTRIBUTE}"
 LIST=0
 PREFIX=""
 MATCH=""
@@ -35,9 +36,11 @@ while getopts "hn:u:ticlp:m:" opt; do
 		;;
 	i)
 		ATTRIBUTE="IngestionDate"
+		SELATTR="${ATTRIBUTE}"
 		;;
 	c)
 		ATTRIBUTE="ContentDate/End"
+		SELATTR="ContentDate"
 		;;
 	l)
 		LIST=1
@@ -82,6 +85,8 @@ printf "\n"
 
 get_list() {
 	SSTRING=`date -d @$START "+%Y-%m-%dT%H:%M:%S.000"`
+	let ETIME=$START+86400
+	ESTRING=`date -d @$NOW "+%Y-%m-%dT%H:%M:%S.000"`
 	PAGESIZE=100
 	SKIP=0
 
@@ -90,7 +95,7 @@ get_list() {
 	let COUNT=$PAGESIZE+1
 	while [ $COUNT -gt $PAGESIZE ]; do
 		COUNT=0
-		SEG=$(curl -sS $UPWD ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${ATTRIBUTE}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27${PREFIX}${MATCH})
+		SEG=`curl -sS $UPWD ${URL}/odata/v1/Products?%24format=text/csv\&%24select=Name,${SELATTR}\&%24skip=$SKIP\&%24top=$PAGESIZE\&%24filter=${ATTRIBUTE}%20gt%20datetime%27${SSTRING}%27%20and%20${ATTRIBUTE}%20lt%20datetime%27${ESTRING}%27${PREFIX}${MATCH}`
 		while read -r line; do
 			if [ $COUNT -ne 0 ]; then
 				echo $line;
