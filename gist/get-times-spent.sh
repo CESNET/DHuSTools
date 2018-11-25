@@ -10,7 +10,7 @@ sort list.$$.A list.$$.B > list.$$.C
 cat list.$$.C | while read l; do printf "${l/,cut_here/\\n}"; done > list.$$.all.csv
 
 
-echo date,source,ms,count
+echo date,source,ms,hrs,count
 cat list.$$.all.csv | egrep ',a,.*,b,' | egrep -v '([^,]*,){9}' | awk -F '[, ]' '{ print $2 "," $11 " " $5 }' | sort | awk 'BEGIN {
 	lastdatesrc="";
 	sum=0;
@@ -18,7 +18,7 @@ cat list.$$.all.csv | egrep ',a,.*,b,' | egrep -v '([^,]*,){9}' | awk -F '[, ]' 
 {
 	if($1 != lastdatesrc) {
 		if(lastdatesrc != "") {
-			print lastdatesrc "," sum "," count; }
+			print lastdatesrc "," sum "," sum/3600000 "," count; }
 		sum=0;
 		count=0;
 		lastdatesrc=$1;
@@ -27,8 +27,8 @@ cat list.$$.all.csv | egrep ',a,.*,b,' | egrep -v '([^,]*,){9}' | awk -F '[, ]' 
 	sum+=$2;
 	count+=1;
 } END {
-	print lastdatesrc "," sum "," count; }'
+	print lastdatesrc "," sum "," sum/3600000 "," count; }'
 
 
-#rm list.$$.A list.$$.B list.$$.C list.$$.all.csv
+rm list.$$.A list.$$.B list.$$.C list.$$.all.csv
 
