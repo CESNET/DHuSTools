@@ -5,11 +5,11 @@ SKIPSTOPPED=1
 REMOTES="./.remote_syncers"
 VARDIR="/var/tmp/report-syncers"
 DRY=0
-JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments"
+JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-20/comment"
 XTRAARG=""
 
 # Table formatting (Jira is default)
-TABLEHEAD="||Id || Status || Label || Schedule || PageSize || FilterParam || ServiceLogin || URL || Instance ||"
+TABLEHEAD="||Id || Label || Schedule || PageSize || FilterParam || ServiceLogin || URL || Instance ||"
 TABLETAIL=""
 TABROWSTART="|"
 TABROWEND="|"
@@ -97,7 +97,10 @@ fi
 ##########################################
 # Step 30: Loop over sources
 
-printf "$TABLEHEAD\n" > "$VARDIR/syncers.$$.md"
+
+printf "{ \"body\": \"" > "$VARDIR/syncers.$$.md"
+
+printf "$TABLEHEAD\\\\n" >> "$VARDIR/syncers.$$.md"
 
 while read INSTANCE; do
 	# Download synchronizers XML, put it all in one
@@ -117,13 +120,32 @@ while read INSTANCE; do
 
 		# Output formatted table
 		if [ $SKIPSTOPPED -eq 0 -o "$STATUS" != "STOPPED" ]; then
-			printf "$TABROWSTART$ID$TABCOLSEP$STATUS$TABCOLSEP$LABEL$TABCOLSEP$SCHEDULE$TABCOLSEP$PAGESIZE$TABCOLSEP$FILTERPARAM$TABCOLSEP$SERVICELOGIN$TABCOLSEP$URL$TABCOLSEP$INSTANCESHORT$TABROWEND\n" >> "$VARDIR/syncers.$$.md"
+			printf "$TABROWSTART$ID$TABCOLSEP$LABEL$TABCOLSEP$SCHEDULE$TABCOLSEP$PAGESIZE$TABCOLSEP$FILTERPARAM$TABCOLSEP$SERVICELOGIN$TABCOLSEP$URL$TABCOLSEP$INSTANCESHORT$TABROWEND\\\\n" >> "$VARDIR/syncers.$$.md"
 		fi
 
 	done
 done < ${REMOTES}
 
-printf "$TABLETAIL\n" >> "$VARDIR/syncers.$$.md"
+printf "$TABLETAIL" >> "$VARDIR/syncers.$$.md"
+
+printf "\" }" >> "$VARDIR/syncers.$$.md"
+
+##########################################
+# Step 40: Check for changes and upload
 
 cat "$VARDIR/syncers.$$.md"
+
+diff "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md" >/dev/null 2>/dev/null
+if [ $? -gt 0 ]; then
+	echo Update detected. Uploading...
+
+	if [ $DRY -eq 0 ]; then
+		cp -f "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md"
+		curl -D- --netrc -X POST --data @$VARDIR/syncers.md -H "Content-Type: application/json" ${XTRAARG} "${JISSUE}"
+
+	fi
+fi
+
+rm "$VARDIR/syncers.$$.md"
+
 
