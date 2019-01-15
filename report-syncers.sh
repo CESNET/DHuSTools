@@ -8,8 +8,10 @@ DRY=0
 JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-20/comment"
 XTRAARG=""
 
-# Table formatting (Jira is default)
-TABLEHEAD="||Id || Label || Schedule || PageSize || FilterParam || ServiceLogin || URL || Instance ||"
+# Table formatting (Jira is default, other formats perhaps later)
+GREETINGLINE="Dear colleagues, we have updated our synchronizers as follows:\\\\n\\\\n" #This is fully optional. Put newlines in here if required
+GOODBYELINE="\\\\nGenerated automatically with DHuSTools."  #This is fully optional. Put newlines in here if required
+TABLEHEAD="||Label || Schedule || PageSize || FilterParam || ServiceLogin || URL || ID || Instance ||"
 TABLETAIL=""
 TABROWSTART="|"
 TABROWEND="|"
@@ -27,26 +29,14 @@ while getopts "hl:w:dj:x:" opt; do
 		\n"
                 exit 0
                 ;;
-	c)
-		STATSCRIPT=$OPTARG
-                ;;
 	d)
 		DRY=1
-                ;;
-	o)
-		XLS=$OPTARG
                 ;;
 	l)
 		REMOTES=$OPTARG
                 ;;
 	w)
 		VARDIR=$OPTARG
-                ;;
-	n)
-		NDAYS=$OPTARG
-                ;;
-	t)
-		TILL=$OPTARG
                 ;;
 	j)
 		JISSUE=$OPTARG
@@ -100,7 +90,7 @@ fi
 
 printf "{ \"body\": \"" > "$VARDIR/syncers.$$.md"
 
-printf "$TABLEHEAD\\\\n" >> "$VARDIR/syncers.$$.md"
+printf "$GREETINGLINE$TABLEHEAD\\\\n" >> "$VARDIR/syncers.$$.md"
 
 while read INSTANCE; do
 	# Download synchronizers XML, put it all in one
@@ -120,13 +110,13 @@ while read INSTANCE; do
 
 		# Output formatted table
 		if [ $SKIPSTOPPED -eq 0 -o "$STATUS" != "STOPPED" ]; then
-			printf "$TABROWSTART$ID$TABCOLSEP$LABEL$TABCOLSEP$SCHEDULE$TABCOLSEP$PAGESIZE$TABCOLSEP$FILTERPARAM$TABCOLSEP$SERVICELOGIN$TABCOLSEP$URL$TABCOLSEP$INSTANCESHORT$TABROWEND\\\\n" >> "$VARDIR/syncers.$$.md"
+			printf "$TABROWSTART$LABEL$TABCOLSEP$SCHEDULE$TABCOLSEP$PAGESIZE$TABCOLSEP$FILTERPARAM$TABCOLSEP$SERVICELOGIN$TABCOLSEP$URL$TABCOLSEP$ID$TABCOLSEP$INSTANCESHORT$TABROWEND\\\\n" >> "$VARDIR/syncers.$$.md"
 		fi
 
 	done
 done < ${REMOTES}
 
-printf "$TABLETAIL" >> "$VARDIR/syncers.$$.md"
+printf "$TABLETAIL$GOODBYELINE" >> "$VARDIR/syncers.$$.md"
 
 printf "\" }" >> "$VARDIR/syncers.$$.md"
 
