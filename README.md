@@ -21,6 +21,10 @@ Reads log files written by DHuS and produces a chart showing download speeds fro
 
 Downloads a given product and compares the manifest to the actual contents of the ZIP file.
 
+## report-syncers.sh
+
+Iterate over multiple instances of DHuS, collect synchronizer settings, compile a comprehensive table of active synchronizers and upload it as a comment to a specified Jira ticket. This script is intended for regular execution by `cron`, only uploading when synchronizer configuration changes to keep Jira users notified of the most recent configuration used in a relay site.
+
 # Gist
 
 The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
