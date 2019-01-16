@@ -17,7 +17,15 @@ TABROWSTART="|"
 TABROWEND="|"
 TABCOLSEP=" | "
 
-while getopts "hl:w:dj:x:" opt; do
+# Override defaults with config file content, if CFs exist
+for CONF in "/etc/report-syncers.conf" "$HOME/.report-syncers.conf"; do
+	if [ -f "$CONF" ]; then
+		echo Reading configuration from "$CONF"
+		source "$CONF"
+	fi
+done
+
+while getopts "hl:w:dj:x:c:" opt; do
   case $opt in
         h)
                 printf "Collect DHuS Synchronizer settings, compile into table and upload.\n\nUsage:\n
@@ -26,6 +34,7 @@ while getopts "hl:w:dj:x:" opt; do
 \t-d      \tDry run. Do everything but do not upload to Jira.\n \
 \t-j <url>\tUpload URL (default \"${JISSUE}\")\n \
 \t-x <str>\tAny extra arguments to be handed over to curl\n \
+\t-c <str>\tPath to configuration file to specify multiple options\n \
 		\n"
                 exit 0
                 ;;
@@ -43,6 +52,16 @@ while getopts "hl:w:dj:x:" opt; do
                 ;;
 	x)
 		XTRAARG=" $OPTARG "
+                ;;
+	c)
+		CONF="$OPTARG"
+		if [ -f "$CONF" ]; then
+			echo Reading configuration from "$CONF"
+			source "$CONF"
+		else
+			echo "Specified configuration file $CONF not found" >&2
+			exit 1
+		fi
                 ;;
   esac
 done
@@ -65,7 +84,7 @@ function check_binaries()
 # Step 10: Test prerequisites
 
 echo Checking prerequisites
-check_binaries sed cat cp curl grep
+check_binaries sed cat cp curl grep echo
 
 ##########################################
 # Step 20: Atrribute constraints check
@@ -123,7 +142,7 @@ printf "\" }" >> "$VARDIR/syncers.$$.md"
 ##########################################
 # Step 40: Check for changes and upload
 
-cat "$VARDIR/syncers.$$.md"
+cat "$VARDIR/syncers.$$.md"; printf "\n"
 
 diff "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md" >/dev/null 2>/dev/null
 if [ $? -gt 0 ]; then
