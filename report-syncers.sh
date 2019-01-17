@@ -84,7 +84,7 @@ function check_binaries()
 # Step 10: Test prerequisites
 
 echo Checking prerequisites
-check_binaries sed cat cp curl grep echo
+check_binaries sed cat cp curl grep echo diff
 
 ##########################################
 # Step 20: Atrribute constraints check
