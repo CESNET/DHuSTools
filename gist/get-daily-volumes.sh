@@ -4,7 +4,7 @@
 # Finally it aggregates the results and cleans them up so that they
 # can be entered "as-is" into any spreadsheet's Pilot Table.
 
-for f in *.log; do
+for f in dhus-*.log; do
 	NAM=`echo -e $f	| egrep -o '[0-9][0-9\-]*'`
 	printf "$NAM"
 	if [ -d "daily-$NAM" ]; then
