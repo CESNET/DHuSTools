@@ -98,12 +98,14 @@ unzip -Z1 $FN | sed "s/$BN\\.SAFE\///" | egrep -v "/$" | sort > $BN.real.lst
 
 if [ $GRANULEONLY -eq 1 ]; then
 	diff "$BN.manifest.lst" "$BN.real.lst" | grep 'GRANULE/'
+	RET=$?
 else
 	diff "$BN.manifest.lst" "$BN.real.lst"
+	RET=$?
 fi
 
 if [ $VERBOSE -eq 1 ]; then
 	rm -rf ${BN}.manifest.lst ${BN}.real.lst ${BN}.SAFE ${BN}.zip
 fi
 
-exit 0
+exit $RET
