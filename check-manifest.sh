@@ -14,6 +14,7 @@ function check_binaries()
 UPWD="-n"
 GRANULEONLY=1
 VERBOSE=0
+CURLSILENT=" --silent"
 
 while getopts "hu:vG" opt; do
   case $opt in
@@ -38,6 +39,7 @@ while getopts "hu:vG" opt; do
 		;;
 	v)
 		VERBOSE=1
+		CURLSILENT=""
 		;;
   esac
 done
@@ -61,7 +63,7 @@ else
 		BN=`echo $SEC | sed 's/\.[^.]*$//'`
 
 		#Have product name translated to ID
-		ID=$(curl -s $UPWD ${HOST}odata/v1/Products?%24format=text/csv\&%24select=Id\&%24filter=Name%20eq%20%27$BN%27 | tail -n 1 | sed 's/\r//' )
+		ID=$(curl -s ${UPWD}${CURLSILENT} ${HOST}odata/v1/Products?%24format=text/csv\&%24select=Id\&%24filter=Name%20eq%20%27$BN%27 | tail -n 1 | sed 's/\r//' )
 		if [ "$ID" == 'Id' -o "$ID" == "" ]; then
 			>&2 echo Product with name \"$BN\" not found
 			exit 1
@@ -74,7 +76,7 @@ fi
 check_binaries sed unzip basename cat curl grep egrep diff
 
 #Download the product file
-FN=`curl $UPWD -JO "$URL" | egrep -o "'.*'" | sed "s/'//g"`
+FN=`curl ${UPWD} -JO "$URL" | egrep -o "'.*'" | sed "s/'//g"`
 
 if [ "$FN" == "" ]; then
 	>&2 echo Download failed
@@ -96,12 +98,14 @@ unzip -Z1 $FN | sed "s/$BN\\.SAFE\///" | egrep -v "/$" | sort > $BN.real.lst
 
 if [ $GRANULEONLY -eq 1 ]; then
 	diff "$BN.manifest.lst" "$BN.real.lst" | grep 'GRANULE/'
+	RET=$?
 else
 	diff "$BN.manifest.lst" "$BN.real.lst"
+	RET=$?
 fi
 
 if [ $VERBOSE -eq 1 ]; then
 	rm -rf ${BN}.manifest.lst ${BN}.real.lst ${BN}.SAFE ${BN}.zip
 fi
 
-exit 0
+exit $RET
