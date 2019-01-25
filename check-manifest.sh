@@ -16,7 +16,7 @@ GRANULEONLY=1
 VERBOSE=0
 CURLSILENT=" --silent"
 
-while getopts "hu:vG" opt; do
+while getopts "hu:vqG" opt; do
   case $opt in
 	h)
 		printf "Download Sentinel product and compare the contents of the ZIP file to the manifest within.\n\n Usage:\n \
@@ -27,6 +27,7 @@ while getopts "hu:vG" opt; do
 \t-u <str>\tuser:password to use accessing the remote site.\n \
 \t\t\tThis is passed directly to curl.\n \
 \t-v      \tVerbose: give more output and do not remove artifacts.\n \
+\t-q      \tQuiet: Suppress all standard output. Result indicated by retval.\n \
 \t-G      \tDo not grep the final output for 'GRANULE'.\n \
 		\n"
 		exit 0
@@ -40,6 +41,10 @@ while getopts "hu:vG" opt; do
 	v)
 		VERBOSE=1
 		CURLSILENT=""
+		;;
+	q)
+		VERBOSE=0
+		exec 1>/dev/null
 		;;
   esac
 done
