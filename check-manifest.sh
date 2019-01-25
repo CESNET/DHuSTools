@@ -13,8 +13,9 @@ function check_binaries()
 
 UPWD="-n"
 GRANULEONLY=1
+VERBOSE=0
 
-while getopts "hu:G" opt; do
+while getopts "hu:vG" opt; do
   case $opt in
 	h)
 		printf "Download Sentinel product and compare the contents of the ZIP file to the manifest within.\n\n Usage:\n \
@@ -23,8 +24,10 @@ while getopts "hu:G" opt; do
 \t${argv[0]} [options] <DHuS instance> <Product Name>\n \
 \t-h      \tDisplay this help\n \
 \t-u <str>\tuser:password to use accessing the remote site.\n \
+\t\t\tThis is passed directly to curl.\n \
+\t-v      \tVerbose: give more output and do not remove artifacts.\n \
 \t-G      \tDo not grep the final output for 'GRANULE'.\n \
-\t\t\tThis is passed directly to curl.\n\n"
+		\n"
 		exit 0
 		;;
 	u)
@@ -32,6 +35,9 @@ while getopts "hu:G" opt; do
 		;;
 	G)
 		GRANULEONLY=0
+		;;
+	v)
+		VERBOSE=1
 		;;
   esac
 done
@@ -92,6 +98,10 @@ if [ $GRANULEONLY -eq 1 ]; then
 	diff "$BN.manifest.lst" "$BN.real.lst" | grep 'GRANULE/'
 else
 	diff "$BN.manifest.lst" "$BN.real.lst"
+fi
+
+if [ $VERBOSE -eq 1 ]; then
+	rm -rf ${BN}.manifest.lst ${BN}.real.lst ${BN}.SAFE ${BN}.zip
 fi
 
 exit 0
