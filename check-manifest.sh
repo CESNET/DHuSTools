@@ -109,7 +109,7 @@ else
 	RET=$?
 fi
 
-if [ $VERBOSE -eq 1 ]; then
+if [ $VERBOSE -ne 1 ]; then
 	rm -rf ${BN}.manifest.lst ${BN}.real.lst ${BN}.SAFE ${BN}.zip
 fi
 
