@@ -5,7 +5,7 @@ SKIPSTOPPED=1
 REMOTES="./.remote_syncers"
 VARDIR="/var/tmp/report-syncers"
 DRY=0
-JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-20/comment"
+JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/EDR-99/comment"
 XTRAARG=""
 
 # Table formatting (Jira is default, other formats perhaps later)
@@ -84,7 +84,7 @@ function check_binaries()
 # Step 10: Test prerequisites
 
 echo Checking prerequisites
-check_binaries sed cat cp curl grep echo
+check_binaries sed cat cp curl grep echo diff
 
 ##########################################
 # Step 20: Atrribute constraints check
