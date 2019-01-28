@@ -29,3 +29,6 @@ Iterate over multiple instances of DHuS, collect synchronizer settings, compile 
 
 The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
 
+# Contributing
+
+Contributions are welcome. Fork this repository on GitHub and open a pull request with your contribution. You are also welcome to open Issues for discussion and/or suggestions.
