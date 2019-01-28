@@ -44,7 +44,7 @@ while getopts "hu:vqG" opt; do
 		;;
 	q)
 		VERBOSE=0
-		exec 1>/dev/null
+		exec 1>&2
 		;;
   esac
 done
@@ -103,7 +103,12 @@ unzip -Z1 $FN | sed "s/$BN\\.SAFE\///" | egrep -v "/$" | sort > $BN.real.lst
 
 if [ $GRANULEONLY -eq 1 ]; then
 	diff "$BN.manifest.lst" "$BN.real.lst" | grep 'GRANULE/'
-	RET=$?
+	if [ $? -gt 0 ]; then
+		let RET=0
+	else
+		let RET=1
+	fi
+	echo $RET
 else
 	diff "$BN.manifest.lst" "$BN.real.lst"
 	RET=$?
