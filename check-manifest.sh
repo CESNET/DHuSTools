@@ -13,8 +13,10 @@ function check_binaries()
 
 UPWD="-n"
 GRANULEONLY=1
+VERBOSE=0
+CURLSILENT=" --silent"
 
-while getopts "hu:G" opt; do
+while getopts "hu:vqG" opt; do
   case $opt in
 	h)
 		printf "Download Sentinel product and compare the contents of the ZIP file to the manifest within.\n\n Usage:\n \
@@ -23,8 +25,11 @@ while getopts "hu:G" opt; do
 \t${argv[0]} [options] <DHuS instance> <Product Name>\n \
 \t-h      \tDisplay this help\n \
 \t-u <str>\tuser:password to use accessing the remote site.\n \
+\t\t\tThis is passed directly to curl.\n \
+\t-v      \tVerbose: give more output and do not remove artifacts.\n \
+\t-q      \tQuiet: Suppress all standard output. Result indicated by retval.\n \
 \t-G      \tDo not grep the final output for 'GRANULE'.\n \
-\t\t\tThis is passed directly to curl.\n\n"
+		\n"
 		exit 0
 		;;
 	u)
@@ -32,6 +37,14 @@ while getopts "hu:G" opt; do
 		;;
 	G)
 		GRANULEONLY=0
+		;;
+	v)
+		VERBOSE=1
+		CURLSILENT=""
+		;;
+	q)
+		VERBOSE=0
+		exec 1>&2
 		;;
   esac
 done
@@ -55,7 +68,7 @@ else
 		BN=`echo $SEC | sed 's/\.[^.]*$//'`
 
 		#Have product name translated to ID
-		ID=$(curl -s $UPWD ${HOST}odata/v1/Products?%24format=text/csv\&%24select=Id\&%24filter=Name%20eq%20%27$BN%27 | tail -n 1 | sed 's/\r//' )
+		ID=$(curl -s ${UPWD}${CURLSILENT} ${HOST}odata/v1/Products?%24format=text/csv\&%24select=Id\&%24filter=Name%20eq%20%27$BN%27 | tail -n 1 | sed 's/\r//' )
 		if [ "$ID" == 'Id' -o "$ID" == "" ]; then
 			>&2 echo Product with name \"$BN\" not found
 			exit 1
@@ -68,7 +81,7 @@ fi
 check_binaries sed unzip basename cat curl grep egrep diff
 
 #Download the product file
-FN=`curl $UPWD -JO "$URL" | egrep -o "'.*'" | sed "s/'//g"`
+FN=`curl ${UPWD} -JO "$URL" | egrep -o "'.*'" | sed "s/'//g"`
 
 if [ "$FN" == "" ]; then
 	>&2 echo Download failed
@@ -90,8 +103,19 @@ unzip -Z1 $FN | sed "s/$BN\\.SAFE\///" | egrep -v "/$" | sort > $BN.real.lst
 
 if [ $GRANULEONLY -eq 1 ]; then
 	diff "$BN.manifest.lst" "$BN.real.lst" | grep 'GRANULE/'
+	if [ $? -gt 0 ]; then
+		let RET=0
+	else
+		let RET=1
+	fi
+	echo $RET
 else
 	diff "$BN.manifest.lst" "$BN.real.lst"
+	RET=$?
 fi
 
-exit 0
+if [ $VERBOSE -ne 1 ]; then
+	rm -rf ${BN}.manifest.lst ${BN}.real.lst ${BN}.SAFE ${BN}.zip
+fi
+
+exit $RET
