@@ -2,6 +2,7 @@
 
 # Defaults
 SKIPSTOPPED=1
+SENDINCOMPLETE=0
 REMOTES="./.remote_syncers"
 VARDIR="/var/tmp/report-syncers"
 DRY=0
@@ -16,6 +17,9 @@ TABLETAIL=""
 TABROWSTART="|"
 TABROWEND="|"
 TABCOLSEP=" | "
+
+#Internal variables
+INCOMPLETE=0
 
 # Override defaults with config file content, if CFs exist
 for CONF in "/etc/report-syncers.conf" "$HOME/.report-syncers.conf"; do
@@ -112,9 +116,14 @@ printf "{ \"body\": \"" > "$VARDIR/syncers.$$.md"
 printf "$GREETINGLINE$TABLEHEAD\\\\n" >> "$VARDIR/syncers.$$.md"
 
 while read INSTANCE; do
-	# Download synchronizers XML, put it all in one
-        # line and then break into lines per entry
-	curl -n "$INSTANCE" | sed 's/\r//g' | sed 's/<\/entry>/<\/entry>\n/g' | while read line; do
+	# Download synchronizers XML
+	RAWSYNC=`curl -n "$INSTANCE"`
+	if [ $? -ne 0 ]; then # Download failed, the report won't be complete
+		((INCOMPLETE++))
+	fi
+
+	# Put all output in one line and then break into lines per entry
+	echo "${RAWSYNC}" | sed 's/\r//g' | sed 's/<\/entry>/<\/entry>\n/g' | while read line; do
 
 		# Extract attributes for table
 		ID=`echo "$line" | sed 's/.*<d:Id>\(.*\)<\/d:Id>.*/\1/'`
@@ -146,12 +155,26 @@ cat "$VARDIR/syncers.$$.md"; printf "\n"
 
 diff "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md" >/dev/null 2>/dev/null
 if [ $? -gt 0 ]; then
-	echo Update detected. Uploading...
 
-	if [ $DRY -eq 0 ]; then
+	TRULLYREPORT=1
+
+	if [ $INCOMPLETE -gt 0 ]; then
+		echo Failed contacting ${INCOMPLETE} endpoints
+		if [ ${SENDINCOMPLETE} -eq 0 ]; then
+			echo Skipping report upload
+			TRULLYREPORT=0
+		fi
+	fi
+
+	if [ $DRY -ne 0 ]; then
+		echo Update detected but Dry Run has been forced.
+		TRULLYREPORT=0
+	fi
+
+	if [ $TRULLYREPORT -eq 1 ]; then
+		echo Update detected. Uploading...
 		cp -f "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md"
 		curl -D- --netrc -X POST --data @$VARDIR/syncers.md -H "Content-Type: application/json" ${XTRAARG} "${JISSUE}"
-
 	fi
 fi
 
