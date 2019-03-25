@@ -29,6 +29,10 @@ for CONF in "/etc/report-syncers.conf" "$HOME/.report-syncers.conf"; do
 	fi
 done
 
+#Expand tildes in paths if used
+REMOTES="${REMOTES/#\~/$HOME}"
+VARDIR="${VARDIR/#\~/$HOME}"
+
 while getopts "hl:w:dj:x:c:" opt; do
   case $opt in
         h)
@@ -123,7 +127,7 @@ while read INSTANCE; do
 	fi
 
 	# Put all output in one line and then break into lines per entry
-	echo "${RAWSYNC}" | sed 's/\r//g' | sed 's/<\/entry>/<\/entry>\n/g' | while read line; do
+	echo "${RAWSYNC}" | sed 's/\r//g' | sed 's/<\/entry>/<\/entry>\n/g' | grep "ServiceUrl" | while read line; do
 
 		# Extract attributes for table
 		ID=`echo "$line" | sed 's/.*<d:Id>\(.*\)<\/d:Id>.*/\1/'`
