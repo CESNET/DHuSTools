@@ -7,7 +7,7 @@ rsync -v root@be1.dhr.cesnet.cz:/var/dhus/dhus1/dhus-datahub/logs/dhus-2*.log ./
 rsync -v root@be1.dhr.cesnet.cz:/var/dhus/dhus2/dhus-datahub/logs/dhus-2*.log ./be1-dhus2/
 rsync -v root@be2.dhr.cesnet.cz:/var/dhus/dhus1/dhus-datahub/logs/dhus-2*.log ./be2-dhus1/
 rsync -v root@be2.dhr.cesnet.cz:/var/dhus/dhus2/dhus-datahub/logs/dhus-2*.log ./be2-dhus2/
-rsync -v root@fe1.dhr.cesnet.cz:/var/dhus/dhus-datahub/logs ./fe1-dhus1/
+rsync -v root@fe1.dhr.cesnet.cz:/var/dhus/dhus-datahub/logs/dhu*.log ./fe1-dhus1/
 
 rm ./dhus-2*.log
 
