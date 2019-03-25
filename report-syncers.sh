@@ -29,6 +29,10 @@ for CONF in "/etc/report-syncers.conf" "$HOME/.report-syncers.conf"; do
 	fi
 done
 
+#Expand tildes in paths if used
+REMOTES="${REMOTES/#\~/$HOME}"
+VARDIR="${VARDIR/#\~/$HOME}"
+
 while getopts "hl:w:dj:x:c:" opt; do
   case $opt in
         h)
