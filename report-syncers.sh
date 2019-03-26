@@ -178,8 +178,13 @@ if [ $? -gt 0 ]; then
 
 	if [ $TRULLYREPORT -eq 1 ]; then
 		echo Update detected. Uploading...
-		cp -f "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md"
-		curl -D- --netrc -X POST --data @$VARDIR/syncers.md -H "Content-Type: application/json" ${XTRAARG} "${JISSUE}"
+		curl -D- --netrc -X POST --data @$VARDIR/syncers.$$.md -H "Content-Type: application/json" ${XTRAARG} "${JISSUE}"
+		if [ $? -eq 0 ]; then # If upload succeeded, replace stored file
+			cp -f "$VARDIR/syncers.$$.md" "$VARDIR/syncers.md"
+			echo Current configuration stored in $VARDIR/syncers.md
+		else
+			echo Upload failed, stored configuration NOT replaced
+		fi
 	fi
 fi
 
