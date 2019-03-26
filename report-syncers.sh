@@ -32,6 +32,7 @@ done
 #Expand tildes in paths if used
 REMOTES="${REMOTES/#\~/$HOME}"
 VARDIR="${VARDIR/#\~/$HOME}"
+XTRAARG="${XTRAARG/#\~/$HOME}"
 
 while getopts "hl:w:dj:x:c:" opt; do
   case $opt in
