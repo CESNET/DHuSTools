@@ -71,8 +71,6 @@ if [ "$FOOTPRINT" == "" ]; then
 	fi
 fi
 
->&2 echo $FOOTPRINT
-
 echo Date Range,Platform,Product Type,Size [B],Size [TiB],Count
 for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	MONTHLESS=$(($MONTH-1))
