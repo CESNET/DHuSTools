@@ -46,6 +46,9 @@ for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 		FULLREQUEST=`echo "${ENDPOINT}/search?q=${FOOTPRINT}${POSCONDITION}&start=${START}&rows=100" | sed 's/ /%20/g; s/"/%22/g;'`
 
 		RAWXML=`curl -nsS "$FULLREQUEST"`	# The sed removes all newlines
+		if [ $? -gt 0 ]; then
+			break 2
+		fi
 		RAWXML=`echo $RAWXML | sed 's/\r//g'`
 		TOTAL=`echo "$RAWXML" | sed 's/.*<opensearch:totalResults>\(.*\)<\/opensearch:totalResults>.*/\1/'`
 
