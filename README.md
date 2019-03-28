@@ -25,6 +25,10 @@ Downloads a given product and compares the manifest to the actual contents of th
 
 Iterate over multiple instances of DHuS, collect synchronizer settings, compile a comprehensive table of active synchronizers and upload it as a comment to a specified Jira ticket. This script is intended for regular execution by `cron`, only uploading when synchronizer configuration changes to keep Jira users notified of the most recent configuration used in a relay site.
 
+## estimate-footprint.sh
+
+Accept footprint, iterate over past months and see what capacity it would take to store data for that footprint. The script produces a CSV by months, suitable for further processing with spreadsheet pivot tables. This is to easily determine what capacity it takes to support a user group interested in a specific geographical area.
+
 # Gist
 
 The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
