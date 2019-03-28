@@ -4,10 +4,10 @@ fromhuman() {
 	echo $@ | awk '{
 		switch ($2) {
 			case "GB":
-			        factor = 1073741824;
+			        factor = 1073741824; # We know from the authors that DHuS indicates in GiB
         			break
 			case "MB":
-			        factor = 1048576;
+			        factor = 1048576; # We know from the authors that DHuS indicates in MiB
         			break
 			case "KB":
 			case "kB":
@@ -30,7 +30,7 @@ ENDPOINT='https://scihub.copernicus.eu/dhus'
 FIELDS='&select=Id'
 
 
-echo Date Range, Platform, Product Type, Size [b], Count
+echo Date Range,Platform,Product Type,Size [B],Size [TiB],Count
 for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	MONTHLESS=$(($MONTH-1))
 	POSCONDITION=" AND beginposition:%5BNOW-${MONTH}MONTHS TO NOW-${MONTHLESS}MONTHS%5D"
@@ -70,7 +70,7 @@ for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	done
 
 	for PLATFORM in "${!SIZES[@]}"; do
-		echo $DATERANGE,$PLATFORM,${SIZES[$PLATFORM]},${COUNTS[$PLATFORM]}
+		echo $DATERANGE,$PLATFORM,${SIZES[$PLATFORM]},`echo ${SIZES[$PLATFORM]} | awk '{ printf "%.3f\n", $1/1024^4}'`,${COUNTS[$PLATFORM]}
 	done
 
 	unset SIZES
