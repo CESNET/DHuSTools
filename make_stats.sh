@@ -170,7 +170,8 @@ while read remote; do
 
 	for DATE in "${LDAYS[@]}"; do
 		scp $remote/dhus-${DATE}.log* "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
-		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log"
+# TODO		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log" # This line is more generic but the `egrep` version bellow reduces disk usage considerably.
+		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" | egrep '(download.*by.*user.*completed)|(successfully.*synchronized.*from.*http.*)' >> "${WRKLOGS}/dhus-${DATE}.log"
 		rm "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
 #		ssh ${remtok[0]} "cat ${remtok[1]}/dhus-${DATE}.log" >> "${WRKLOGS}/dhus-${DATE}.log"
 	done
