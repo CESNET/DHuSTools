@@ -111,7 +111,7 @@ fi
 # Step 02: Test prerequisites
 
 echo Checking prerequisites
-check_binaries sed libreoffice scp tar gzip basename date cat cp curl grep
+check_binaries sed libreoffice scp tar gzip basename date cat cp curl grep gunzip
 
 if [ ! -f $HOME/.netrc ]; then
 	echo File "$HOME/.netrc" not found. Upload to Jira would fail
@@ -171,7 +171,7 @@ while read remote; do
 	for DATE in "${LDAYS[@]}"; do
 		scp $remote/dhus-${DATE}.log* "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
 # TODO		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log" # This line is more generic but the `egrep` version bellow reduces disk usage considerably.
-		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" | egrep '(download.*by.*user.*completed)|(successfully.*synchronized.*from.*http.*)' >> "${WRKLOGS}/dhus-${DATE}.log"
+		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" | grep -E '(download.*by.*user.*completed)|(successfully.*synchronized.*from.*http.*)' >> "${WRKLOGS}/dhus-${DATE}.log"
 		rm "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
 #		ssh ${remtok[0]} "cat ${remtok[1]}/dhus-${DATE}.log" >> "${WRKLOGS}/dhus-${DATE}.log"
 	done
