@@ -80,6 +80,16 @@ function check_binaries()
 	done
 }
 
+function anycat()
+{
+	mimetype=$(file -bi $1 | awk -F ";" '{print $1}')
+	case $mimetype in
+		"application/gzip") gunzip -c $1 ;;
+		"text/plain") cat $1 ;;
+		*) cat $1 ;;
+	esac
+}
+
 FROM=`date -d "${TILL}-${NDAYS} days" +%Y-%m-%d`
 WEEKTILL=`date -d "${TILL}" +%V`
 WEEKFROM=`date -d "${FROM}" +%V`
@@ -159,8 +169,8 @@ while read remote; do
 	echo Downloading logs from ${remtok[0]} \(remote path ${remtok[1]}\)
 
 	for DATE in "${LDAYS[@]}"; do
-		scp $remote/dhus-${DATE}.log "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
-		cat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log"
+		scp $remote/dhus-${DATE}.log* "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
+		anycat "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}" >> "${WRKLOGS}/dhus-${DATE}.log"
 		rm "${WRKLOGS}/dhus-${DATE}.log.${remtok[0]}"
 #		ssh ${remtok[0]} "cat ${remtok[1]}/dhus-${DATE}.log" >> "${WRKLOGS}/dhus-${DATE}.log"
 	done
