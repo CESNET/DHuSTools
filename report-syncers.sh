@@ -127,6 +127,11 @@ while read INSTANCE; do
 		((INCOMPLETE++))
 		continue
 	fi
+	echo "${RAWSYNC}" | grep '<title type="text">Synchronizers</title>' >/dev/null
+	if [ $? -ne 0 ]; then # Result does not contain Synchronizers, it's an error
+		((INCOMPLETE++))
+		continue
+	fi
 
 	# Put all output in one line and then break into lines per entry
 	echo "${RAWSYNC}" | sed 's/\r//g' | sed 's/<\/entry>/<\/entry>\n/g' | grep "ServiceUrl" | while read line; do
