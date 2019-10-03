@@ -125,6 +125,7 @@ while read INSTANCE; do
 	RAWSYNC=`curl -n "$INSTANCE"`
 	if [ $? -ne 0 ]; then # Download failed, the report won't be complete
 		((INCOMPLETE++))
+		continue
 	fi
 
 	# Put all output in one line and then break into lines per entry
