@@ -26,8 +26,9 @@ MONTHS=6
 ENDPOINT='https://scihub.copernicus.eu/dhus'
 OUTPUTPLATFORM=1
 OUTPUTTYPES=1
+CONCATENATOR=" AND "
 
-while getopts "hn:e:DTAu:" opt; do
+while getopts "hn:e:DTAu:N" opt; do
   case $opt in
         h)
                 printf "Take DHuS query footprint and get the number and size of files matching that footprint over past months.\n\nUsage:\n \
@@ -37,6 +38,7 @@ while getopts "hn:e:DTAu:" opt; do
 \t-e <str>\tEndpoint to use for the query\n\t\t\t(Default \"${ENDPOINT}\")\n \
 \t-u <str>\tuser:password to use accessing the remote site.\n \
 \t-D      \tDemo: use demo footprint (Denmark)\n \
+\t-N      \tNo footprint: make global estimte\n \
 \t-T      \tDo not output per product type, only platform summary\n \
 \t-A      \tDo not output platform summary, only product types\n \
                 \n"
@@ -50,7 +52,13 @@ while getopts "hn:e:DTAu:" opt; do
                 ;;
         D)
 		FOOTPRINT='footprint:"Intersects(POLYGON((7.125551570329695 56.82293997800775,8.187468460585468 54.83362909344714,10.15067615685664 54.76675883034369,11.614158257713337 54.49298748079582,12.613609448542297 54.57582966128987,12.711769833355858 55.41530314074643,12.756388190089293 55.75824345184793,12.256662594674813 56.656540063131985,10.775333151124743 57.99562854221014,7.125551570329695 56.82293997800775,7.125551570329695 56.82293997800775)))"'
+		CONCATENATOR=" AND "
 		>&2 printf "Using demo footprint:\n${FOOTPRINT}\n"
+                ;;
+        N)
+		CONCATENATOR=""
+		FOOTPRINT=""
+		>&2 printf "Using NO footprint\n"
                 ;;
         T)
                 OUTPUTTYPES=0
@@ -62,7 +70,7 @@ while getopts "hn:e:DTAu:" opt; do
                 ;;
   esac
 done
-if [ "$FOOTPRINT" == "" ]; then
+if [ "$FOOTPRINT" == "" ] && [ "$CONCATENATOR" != "" ]; then
 	shift $(expr $OPTIND - 1 )
 	FOOTPRINT="$@"
 	if [ "$FOOTPRINT" == "" ]; then
@@ -74,7 +82,7 @@ fi
 echo Date Range,Platform,Product Type,Size [B],Size [TiB],Count
 for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	MONTHLESS=$(($MONTH-1))
-	POSCONDITION=" AND beginposition:%5BNOW-${MONTH}MONTHS TO NOW-${MONTHLESS}MONTHS%5D"
+	POSCONDITION="${CONCATENATOR}beginposition:%5BNOW-${MONTH}MONTHS TO NOW-${MONTHLESS}MONTHS%5D"
 
 	DATERANGE=`date +%Y-%m-%d -d "now - $MONTH month"`--`date +%Y-%m-%d -d "now - $MONTHLESS month"`
 
