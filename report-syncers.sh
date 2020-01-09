@@ -125,6 +125,12 @@ while read INSTANCE; do
 	RAWSYNC=`curl -n "$INSTANCE"`
 	if [ $? -ne 0 ]; then # Download failed, the report won't be complete
 		((INCOMPLETE++))
+		continue
+	fi
+	echo "${RAWSYNC}" | grep '<title type="text">Synchronizers</title>' >/dev/null
+	if [ $? -ne 0 ]; then # Result does not contain Synchronizers, it's an error
+		((INCOMPLETE++))
+		continue
 	fi
 
 	# Put all output in one line and then break into lines per entry
