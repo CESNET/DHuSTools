@@ -4,7 +4,7 @@
 	URL="https://colhub.copernicus.eu/dhus"
 	UPWD="-n"
 	NOW=`date -d 'yesterday 00:00:00' "+%s"`
-	START=0
+	START=0 # Start from the beginning of the world (i.e., Jan 1970)
 
 	SSTRING=`date -d @$START "+%Y-%m-%dT%H:%M:%S.000"`
 	let ETIME=$START+86400
@@ -27,6 +27,3 @@
 		let SKIP=$SKIP+$PAGESIZE
 	done
 
-
-
-##sed 's/<entry>/\n/g' | sed 's/.*<d:Name>\([^<]*\).*<d:CreationDate>\([^<]*\).*<d:DeletionDate>\([^<]*\).*<d:DeletionCause>\([^<]*\).*/\1;\2;\3;\4/'
