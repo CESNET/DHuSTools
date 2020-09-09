@@ -279,5 +279,5 @@ echo Removing temporary files from ${WRKLOGS}
 #TODO: Actually remove files
 
 cd "${WRKD}"
-rm -rf logs.$$
+#rm -rf logs.$$
 
