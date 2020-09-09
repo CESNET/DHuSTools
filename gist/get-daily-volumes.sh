@@ -4,14 +4,16 @@
 # Finally it aggregates the results and cleans them up so that they
 # can be entered "as-is" into any spreadsheet's Pilot Table.
 
-for f in dhus-*.log; do
+for f in dhus-*.log.gz; do
 	NAM=`echo -e $f	| egrep -o '[0-9][0-9\-]*'`
 	printf "$NAM"
 	if [ -d "daily-$NAM" ]; then
 		echo " already exists"
 	else
 		mkdir -p daily-$NAM
+		gunzip -c $f | grep -E '(download.*by.*user.*completed)|(successfully.*synchronized.*from.*http.*)' > dhus-${NAM}.log
 		./DataHubStats_TiB.sh $NAM $NAM daily-$NAM
+		rm dhus-${NAM}.log
 	fi
 done
 
