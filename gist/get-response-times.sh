@@ -17,3 +17,6 @@ grep -h 'query(Products)' *.log | sed 's/.*\]\[\([0-9][0-9\-]*\).*Synchronizer\#
 
 rm -f /tmp/syncer.replace.$$
 
+# To calculate averages, redirect output to this:
+# | sort | awk --field-separator=";" 'START{ last=""; count=0 } { datefrom=$1";"$2; if(datefrom!=last) { print last "," sum "," count; sum=0; count=0 } sum+=$3; count+=1; last=datefrom; } END { print last "," sum "," count }'
+

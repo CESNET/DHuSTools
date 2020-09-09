@@ -8,6 +8,7 @@ VARDIR="/var/tmp/report-syncers"
 DRY=0
 JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/EDR-99/comment"
 XTRAARG=""
+SKIPPATTERN="^gap_fill" # auto-maintained service synchronizers, separate with '|'
 
 # Table formatting (Jira is default, other formats perhaps later)
 GREETINGLINE="Dear colleagues, we have updated our synchronizers as follows:\\\\n\\\\n" #This is fully optional. Put newlines in here if required
@@ -34,7 +35,7 @@ REMOTES="${REMOTES/#\~/$HOME}"
 VARDIR="${VARDIR/#\~/$HOME}"
 XTRAARG="${XTRAARG/#\~/$HOME}"
 
-while getopts "hl:w:dj:x:c:" opt; do
+while getopts "hl:w:dj:x:c:p:" opt; do
   case $opt in
         h)
                 printf "Collect DHuS Synchronizer settings, compile into table and upload.\n\nUsage:\n
@@ -44,6 +45,7 @@ while getopts "hl:w:dj:x:c:" opt; do
 \t-j <url>\tUpload URL (default \"${JISSUE}\")\n \
 \t-x <str>\tAny extra arguments to be handed over to curl\n \
 \t-c <str>\tPath to configuration file to specify multiple options\n \
+\t-p <regex>\tPattern to look up in syncer label and skip (default \"${SKIPPATTERN}\")\n \
 		\n"
                 exit 0
                 ;;
@@ -61,6 +63,9 @@ while getopts "hl:w:dj:x:c:" opt; do
                 ;;
 	x)
 		XTRAARG=" $OPTARG "
+                ;;
+	p)
+		SKIPPATTERN=$OPTARG
                 ;;
 	c)
 		CONF="$OPTARG"
@@ -146,6 +151,13 @@ while read INSTANCE; do
 		FILTERPARAM=`echo "$line" | sed 's/.*<d:FilterParam>\(.*\)<\/d:FilterParam>.*/\1/'`
 		SERVICELOGIN=`echo "$line" | sed 's/.*<d:ServiceLogin>\(.*\)<\/d:ServiceLogin>.*/\1/'`
 		INSTANCESHORT=`echo "$INSTANCE" | sed 's/\/[^/]*$//'`
+
+		if [ "$SKIPPATTERN" != "" ]; then
+			echo "$LABEL" | grep -E "$SKIPPATTERN"
+			if [ $? -eq 0 ]; then
+				continue # Skip output if pattern matches
+			fi
+		fi
 
 		# Output formatted table
 		if [ $SKIPSTOPPED -eq 0 -o "$STATUS" != "STOPPED" ]; then
