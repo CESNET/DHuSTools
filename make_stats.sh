@@ -8,10 +8,11 @@ NDAYS=6
 TILL=`date -d "yesterday" +%Y-%m-%d`
 WRKD="/tmp"
 DRY=0
-JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/CRDR-7/attachments"
+JPROJECT="https://serco-copernicus.atlassian.net/rest/servicedeskapi/servicedesk/CRDR/attachTemporaryFile"
+JISSUE="https://serco-copernicus.atlassian.net/rest/servicedeskapi/request/CRDR-1/attachment"
 XTRAARG=""
 
-while getopts "hdc:o:l:n:f:w:t:j:x:" opt; do
+while getopts "hdc:o:l:n:f:w:t:j:p:x:" opt; do
   case $opt in
         h)
                 printf "Collect, run and export DHuS Relay statistics\n\nUsage:\n
@@ -21,7 +22,8 @@ while getopts "hdc:o:l:n:f:w:t:j:x:" opt; do
 \t-w <str>\tPath to the working directory (Default \"${WRKD}\")\n \
 \t-n <num>\tStart reporting period <num> days\n\t\t\tBEFORE the final date (Default ${NDAYS})\n \
 \t-d      \tDry run. Do everything but do not upload to Jira.\n \
-\t-j <url>\tUpload URL (default \"${JISSUE}\")\n \
+\t-p <url>\tUpload URL (default \"${JPROJECT}\")\n \
+\t-j <url>\tAttach URL (default \"${JISSUE}\")\n \
 \t-x <str>\tAny extra arguments to be handed over to curl\n \
 \t-t <Y-M-D>\t\"Till\" Date (Default \"${TILL}\")\n \
 		\n"
@@ -47,6 +49,9 @@ while getopts "hdc:o:l:n:f:w:t:j:x:" opt; do
                 ;;
 	t)
 		TILL=$OPTARG
+                ;;
+	p)
+		JPROJECT=$OPTARG
                 ;;
 	j)
 		JISSUE=$OPTARG
@@ -267,7 +272,15 @@ gzip ${YEAR}${WEEK}_reports.tar
 
 if [ $DRY -eq 0 ]; then
 
-	curl -D- --netrc -X POST -H "X-Atlassian-Token: nocheck" -F "file=@${WRKLOGS}/${YEAR}${WEEK}_reports.tar.gz" ${XTRAARG} "${JISSUE}"
+	TEMPID=`curl -n -X POST -H "X-Atlassian-Token: no-check" -F "file=@${WRKLOGS}/${YEAR}${WEEK}_reports.tar.gz" ${XTRAARG} "$JPROJECT" | sed 's/.*"temporaryAttachmentId":"\([^"]*\).*/\1/' | sed 's/.*"temporaryAttachmentId":"\([^"]*\).*/\1/'`
+
+	if [ "${TEMPID}" != "" ]; then
+		echo TEMP file ID ${TEMPID}
+
+		curl -D- -n -X POST -H "X-Atlassian-Token: no-check" ${XTRAARG} "$JISSUE" --header 'Accept: application/json' --header 'Content-Type: application/json' --data '{ "temporaryAttachmentIds": [ "'${TEMPID}'" ], "public": true }'
+	else
+		>&2 echo TEMP file ID empty
+	fi
 
 fi
 
