@@ -6,7 +6,7 @@ SENDINCOMPLETE=0
 REMOTES="./.remote_syncers"
 VARDIR="/var/tmp/report-syncers"
 DRY=0
-JISSUE="https://copernicus.serco.eu/jira-osf/rest/api/2/issue/EDR-99/comment"
+JISSUE="https://serco-copernicus.atlassian.net/rest/api/2/issue/EDR-4/comment"
 XTRAARG=""
 SKIPPATTERN="^gap_fill" # auto-maintained service synchronizers, separate with '|'
 
