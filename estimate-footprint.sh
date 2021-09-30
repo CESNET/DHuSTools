@@ -23,7 +23,7 @@ fromhuman() {
 
 UPWD="-n"
 MONTHS=6
-ENDPOINT='https://scihub.copernicus.eu/dhus'
+ENDPOINT='https://scihub.copernicus.eu/apihub'
 OUTPUTPLATFORM=1
 OUTPUTTYPES=1
 CONCATENATOR=" AND "
@@ -79,6 +79,8 @@ if [ "$FOOTPRINT" == "" ] && [ "$CONCATENATOR" != "" ]; then
 	fi
 fi
 
+FOOTPRINT=`echo "$FOOTPRINT" | sed "s/-/%2D/g"`
+
 echo Date Range,Platform,Product Type,Size [B],Size [TiB],Count
 for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	MONTHLESS=$(($MONTH-1))
@@ -93,6 +95,7 @@ for MONTH in `seq 1 $MONTHS`; do	# Get products per month
 	while [ true ];	do # Iterate through pages. Don't worry, there will be an exit condition at the end of the loop
 
 		FULLREQUEST=`echo "${ENDPOINT}/search?q=${FOOTPRINT}${POSCONDITION}&start=${START}&rows=100" | sed 's/ /%20/g; s/"/%22/g;'`
+#		>&2 echo $FULLREQUEST
 
 		RAWXML=`curl ${UPWD} -sS "$FULLREQUEST"`	# The sed removes all newlines
 		if [ $? -gt 0 ]; then
