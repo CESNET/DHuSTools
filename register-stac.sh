@@ -59,7 +59,6 @@ while read file; do
 done
 
 find . -type f 1>&2
-cd "${ORIGDIR}"
 
 ######################################
 #
@@ -86,6 +85,8 @@ cd "${ORIGDIR}"
 # Cleanup
 #
 ######################################
+
+cd "${ORIGDIR}"
 
 if [ "$DEBUG" == "" ]; then
 	rm -rf "${TMP}/register-stac.$$"
