@@ -21,7 +21,7 @@ fi
 #
 ######################################
 
-XML=`curl --no-progress-meter -n -o - "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"`
+XML=`curl -n -o - "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"`
 TITLE=`echo "${XML}" | sed "s/.*<entry>.*<link href=.Nodes('\([^']*\).*/\1/"`
 PREFIX=`echo "${XML}" | sed "s/.*<entry>.*<id>\([^<]*\).*/\1/"`
 
