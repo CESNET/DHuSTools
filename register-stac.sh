@@ -4,7 +4,8 @@ ID="$1"
 HOST="https://dhr1.cesnet.cz/"
 COLLECTION="https://resto.c-scale.zcu.cz/collections/S2-experimental"
 TMP="/tmp"
-DEBUG="1"
+SUCCPREFIX="/var/tmp/register-stac-success-"
+ERRPREFIX="/var/tmp/egister-stac-error-"
 
 ######################################
 #
@@ -16,6 +17,8 @@ if [ "${ID}" == "" ]; then
 	1>&2 echo $0: No ID specified
 	exit 1
 fi
+
+RUNDATE=`date +%Y-%m-%d`
 
 ######################################
 #
@@ -98,13 +101,22 @@ done
 #
 ######################################
 
-curl -n -X POST "${COLLECTION}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
+curl -n -o output.json -X POST "${COLLECTION}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
 
 ######################################
 #
 # Cleanup
 #
 ######################################
+
+grep '"status":"success"' output.json >/dev/null
+if [ $? -eq 0 ]; then
+	echo "${ID}" >> "${SUCCPREFIX}-${RUNDATE}.csv"
+else
+	echo "${ID}" >> "${ERRPREFIX}-${RUNDATE}.csv"
+	DEBUG="1"
+fi
+
 
 cd "${ORIGDIR}"
 
