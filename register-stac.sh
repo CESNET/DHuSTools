@@ -2,6 +2,7 @@
 
 ID="$1"
 HOST="https://dhr1.cesnet.cz/"
+COLLECTION="https://resto.c-scale.zcu.cz/collections/S2-experimental"
 TMP="/tmp"
 DEBUG="1"
 
@@ -93,6 +94,8 @@ done < "$file"
 # Upload
 #
 ######################################
+
+curl -n -X POST "${COLLECTION}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
 
 ######################################
 #
