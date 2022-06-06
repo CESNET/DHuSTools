@@ -77,8 +77,8 @@ find . -type f 1>&2
 ######################################
 
 file=`ls *.json | head -n 1`
-while read line; do
-	if [[ "$line" =~ .*\"href\":.*\"${TILE}.* ]]; then
+for line in `cat "$file"`; do
+	if [[ "$line" =~ .*\"href\":.*\.SAFE.* ]]; then # TODO: Less fragile code
 		path=`echo "$line" | sed 's/^[^"]*"href":[^"]*"//' | sed 's/",$//'`
 		URL="${PRODUCTURL}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
 		echo "\"href\": \"${URL}\"," >> "new_${file}"
@@ -86,7 +86,7 @@ while read line; do
 	else # No change
 		echo "${line}" >> "new_${file}"
 	fi
-done < "$file"
+done
 
 
 ######################################
