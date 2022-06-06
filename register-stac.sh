@@ -14,6 +14,7 @@ DEBUG="1"
 
 if [ "${ID}" == "" ]; then
 	1>&2 echo $0: No ID specified
+	exit 1
 fi
 
 ######################################
