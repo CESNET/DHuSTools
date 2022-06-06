@@ -5,7 +5,7 @@ HOST="https://dhr1.cesnet.cz/"
 COLLECTION="https://resto.c-scale.zcu.cz/collections/S2-experimental"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
-ERRPREFIX="/var/tmp/egister-stac-error-"
+ERRPREFIX="/var/tmp/register-stac-error-"
 
 ######################################
 #
@@ -111,9 +111,9 @@ curl -n -o output.json -X POST "${COLLECTION}/items" -H 'Content-Type: applicati
 
 grep '"status":"success"' output.json >/dev/null
 if [ $? -eq 0 ]; then
-	echo "${ID}" >> "${SUCCPREFIX}-${RUNDATE}.csv"
+	echo "${ID}" >> "${SUCCPREFIX}${RUNDATE}.csv"
 else
-	echo "${ID}" >> "${ERRPREFIX}-${RUNDATE}.csv"
+	echo "${ID}" >> "${ERRPREFIX}${RUNDATE}.csv"
 	DEBUG="1"
 fi
 
