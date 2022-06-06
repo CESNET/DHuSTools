@@ -24,6 +24,7 @@ fi
 XML=`curl -n -o - "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"`
 TITLE=`echo "${XML}" | sed "s/.*<entry>.*<link href=.Nodes('\([^']*\).*/\1/"`
 PREFIX=`echo "${XML}" | sed "s/.*<entry>.*<id>\([^<]*\).*/\1/"`
+PRODUCTURL=`echo "${PREFIX}" | sed 's/\\Nodes.*//'`
 
 
 1>&2 echo Getting metadata for $TITLE "(ID: ${ID})"
@@ -78,7 +79,9 @@ file=`ls *.json | head -n 1`
 while read line; do
 	if [[ "$line" =~ .*\"href\":.*\"${TILE}.* ]]; then
 		path=`echo "$line" | sed 's/^[^"]*"href":[^"]*"//' | sed 's/",$//'`
-		URL="${PREFIX}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
+		URL="${PRODUCTURL}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
+		echo "\"href\": \"${URL}\"," >> "new_${file}"
+
 	else # No change
 		echo "${line}" >> "new_${file}"
 	fi
