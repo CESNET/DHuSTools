@@ -1,8 +1,11 @@
 #!/bin/bash
 
+#DEBUG=1
 ID="$1"
 HOST="https://dhr1.cesnet.cz/"
-COLLECTION="https://resto.c-scale.zcu.cz/collections/S2-experimental"
+declare -A COLLECTION
+COLLECTION["S2"]="https://resto.c-scale.zcu.cz/collections/S2-experimental"
+COLLECTION["S1"]="https://resto.c-scale.zcu.cz/collections/S1-experimental"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
@@ -30,11 +33,12 @@ XML=`curl -n -o - "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"`
 TITLE=`echo "${XML}" | sed "s/.*<entry>.*<link href=.Nodes('\([^']*\).*/\1/"`
 PREFIX=`echo "${XML}" | sed "s/.*<entry>.*<id>\([^<]*\).*/\1/"`
 PRODUCTURL=`echo "${PREFIX}" | sed 's/\\Nodes.*//'`
-
+PLATFORM="${TITLE:0:2}"
 
 1>&2 echo Getting metadata for $TITLE "(ID: ${ID})"
 1>&2 echo Download prefix: ${PREFIX}
-
+1>&2 echo Platform prefix: ${PLATFORM}
+1>&2 echo Using colection: ${COLLECTION[${PLATFORM}]}
 
 ######################################
 #
@@ -55,7 +59,7 @@ mkdir "${TITLE}"
 curl -n -o "${TITLE}/manifest.safe" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
 
 # download other metadata files line by line
-cat "${TITLE}/manifest.safe" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml" | sed 's/.*href="//' | sed 's/".*//' |
+cat "${TITLE}/manifest.safe" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
 while read file; do
 	1>&2 echo Downloading $file
 	URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
@@ -64,7 +68,14 @@ while read file; do
 	curl -n -o "${TITLE}/${file}" "${URL}"
 done
 
-find . -type f 1>&2
+# create empty directiries stac-tools look into
+if [ "$PLATFORM" == "S1" ]; then
+	mkdir -p "${TITLE}/annotation/calibration"
+	mkdir -p "${TITLE}/measurement"
+fi
+
+
+find . 1>&2
 
 ######################################
 #
@@ -72,7 +83,11 @@ find . -type f 1>&2
 #
 ######################################
 
-~/.local/bin/stac sentinel2 create-item "${TITLE}" ./
+if [ "$PLATFORM" == "S2" ]; then
+	~/.local/bin/stac sentinel2 create-item "${TITLE}" ./
+elif [ "$PLATFORM" == "S1" ]; then
+	~/.local/bin/stac sentinel1 grd create-item "${TITLE}" ./
+fi
 
 ######################################
 #
@@ -101,13 +116,16 @@ done
 #
 ######################################
 
-curl -n -o output.json -X POST "${COLLECTION}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
+curl -n -o output.json -X POST "${COLLECTION[${PLATFORM}]}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
 
 ######################################
 #
 # Cleanup
 #
 ######################################
+
+
+#TODO: Add reaction to {"ErrorMessage":"Not Found","ErrorCode":404}
 
 grep '"status":"success"' output.json >/dev/null
 if [ $? -eq 0 ]; then
