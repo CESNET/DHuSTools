@@ -6,6 +6,7 @@ HOST="https://dhr1.cesnet.cz/"
 declare -A COLLECTION
 COLLECTION["S2"]="https://resto.c-scale.zcu.cz/collections/S2-experimental"
 COLLECTION["S1"]="https://resto.c-scale.zcu.cz/collections/S1-experimental"
+COLLECTION["S3"]="https://resto.c-scale.zcu.cz/collections/S3-experimental"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
@@ -56,10 +57,16 @@ mkdir "${TITLE}"
 
 # Get manifest
 
-curl -n -o "${TITLE}/manifest.safe" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
+if [ "$PLATFORM" != "S3" ]; then
+	MANIFEST="${TITLE}/manifest.safe"
+	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
+else
+	MANIFEST="${TITLE}/xfdumanifest.xml"
+	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
+fi
 
 # download other metadata files line by line
-cat "${TITLE}/manifest.safe" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
+cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
 while read file; do
 	1>&2 echo Downloading $file
 	URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
@@ -87,6 +94,8 @@ if [ "$PLATFORM" == "S2" ]; then
 	~/.local/bin/stac sentinel2 create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S1" ]; then
 	~/.local/bin/stac sentinel1 grd create-item "${TITLE}" ./
+elif [ "$PLATFORM" == "S3" ]; then
+	~/.local/bin/stac sentinel3 create-item "${TITLE}" ./
 fi
 
 ######################################
