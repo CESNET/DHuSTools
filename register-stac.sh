@@ -7,6 +7,7 @@ declare -A COLLECTION
 COLLECTION["S2"]="https://resto.c-scale.zcu.cz/collections/S2-experimental"
 COLLECTION["S1"]="https://resto.c-scale.zcu.cz/collections/S1-experimental"
 COLLECTION["S3"]="https://resto.c-scale.zcu.cz/collections/S3-experimental"
+COLLECTION["S5"]="https://resto.c-scale.zcu.cz/collections/S5-experimental"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
@@ -57,25 +58,31 @@ mkdir "${TITLE}"
 
 # Get manifest
 
-if [ "$PLATFORM" != "S3" ]; then
+if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
 	MANIFEST="${TITLE}/manifest.safe"
 	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
-else
+elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S3p" ]; then
 	MANIFEST="${TITLE}/xfdumanifest.xml"
 	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
+else
+	MANIFEST="${TITLE}"
+	rmdir "${TITLE}"
+	curl -n -o "${MANIFEST}" "${PREFIX}/%24value"
 fi
 
-# download other metadata files line by line
-cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
-while read file; do
-	1>&2 echo Downloading $file
-	URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
-#	echo $URL
-	mkdir -p "${TITLE}/$(dirname ${file})"
-	curl -n -o "${TITLE}/${file}" "${URL}"
-done
+# download other metadata files line by line (Only for S1 and S2)
+if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
+	cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
+	while read file; do
+		1>&2 echo Downloading $file
+		URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
+	#	echo $URL
+		mkdir -p "${TITLE}/$(dirname ${file})"
+		curl -n -o "${TITLE}/${file}" "${URL}"
+	done
+fi
 
-# create empty directiries stac-tools look into
+# create empty directiries stac-tools look into (only S1)
 if [ "$PLATFORM" == "S1" ]; then
 	mkdir -p "${TITLE}/annotation/calibration"
 	mkdir -p "${TITLE}/measurement"
@@ -96,6 +103,8 @@ elif [ "$PLATFORM" == "S1" ]; then
 	~/.local/bin/stac sentinel1 grd create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S3" ]; then
 	~/.local/bin/stac sentinel3 create-item "${TITLE}" ./
+elif [ "$PLATFORM" == "S5" ]; then
+	~/.local/bin/stac sentinel5p create-item "${TITLE}" ./
 fi
 
 ######################################
@@ -107,7 +116,7 @@ fi
 file=`ls *.json | head -n 1`
 printf "\n" >> "$file" # Poor man's hack to make sure `read` gets all lines
 cat "$file" | while IFS= read line; do
-	if [[ "$line" =~ .*\"href\":.*\.SAFE.* ]]; then # TODO: Less fragile code
+	if [[ "$line" =~ .*\"href\":.*\.(SAFE|nc)\".* ]]; then # TODO: Less fragile code
 		path=`echo "$line" | sed 's/^[^"]*"href":[^"]*"//' | sed 's/",$//'`
 		LEAD=`echo "$line" | sed 's/"href":.*/"href":/'`
 		URL="${PRODUCTURL}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
