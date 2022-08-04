@@ -28,10 +28,11 @@ if [ -s "${VARTMP}/timestamp" ]; then
 	fi
 fi
 
+#TODO: Add options to support other types of output besides IDs
 while getopts "hvdn:f:u:t:" opt; do
   case $opt in
         h)
-                printf "Generate a list of Sentinel products recently published on an endpoint.\n\nUsage:\n
+                printf "Generate a list of Sentinel products recently published at an endpoint.\n\nUsage:\n
 \t-h      \t\tDisplay this help\n \
 \t-d      \t\tDry run: do not store results at all\n \
 \t-n <str>\t\taltarnative .netrc file (default ~/.netrc)\n \
