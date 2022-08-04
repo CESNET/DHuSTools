@@ -13,6 +13,10 @@ Intended to be run by `cron`. It does not produce the statistics itself but rath
 
 Generates a list of Sentinel2 L1C products in the target site that do not yet have a matching L2A product with atmospheric correction, produced with `Sen2cor`.
 
+## gen\_new\_list.sh
+
+Generates a list of all product IDs that have appeared on a specified DHuS endpoint since a given timestamp. Useful for all application where reaction to new products is required.
+
 ## format\_dhus\_log.sh
 
 Reads log files written by DHuS and produces a chart showing download speeds from various identified sources over time.
