@@ -3,7 +3,7 @@
 
 SCRIPTNAME="`basename -s .sh $0`"
 LOCK="/var/tmp/$SCRIPTNAME.lock"
-VARPREFIX="/var/tmp/stac-new-`date +%Y-%M-%d_%H:%M`"
+VARPREFIX="/var/tmp/stac-new-`date +%Y-%m-%d_%H:%M`"
 
 if [ -e $LOCK ]; then
 	1>&2 printf "Exitting: Lock file exists: $LOCK\n\"$SCRIPTNAME\" is only meant to be run once at a time.\n\n"
