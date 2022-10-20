@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG=0
+#DEBUG=1
 ID="$1"
 HOST="https://dhr1.cesnet.cz/"
 STACHOST="https://stac.cesnet.cz"
@@ -171,7 +171,7 @@ file=`ls *.json | head -n 1`
 printf "\n" >> "$file" # Poor man's hack to make sure `read` gets all lines
 cat "$file" | while IFS= read line; do
 	if [[ "$line" =~ .*\"href\":.*\.(SAFE|SEN3|nc)[/\"].* ]]; then # TODO: Less fragile code
-		echo Modifying line \"$line\"
+#		echo Modifying line \"$line\"
 		path=`echo "$line" | sed 's/^[^"]*"href":[^"]*"//' | sed 's/",$//'`
 		LEAD=`echo "$line" | sed 's/"href":.*/"href":/'`
 		URL="${PRODUCTURL}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
@@ -198,15 +198,12 @@ curl -n -o output.json -X POST "${STACHOST}/collections/${COLLECTION[${PLATFORM}
 ######################################
 
 
-# TODO: "ErrorCode":409 # Already exists
-# TODO: "ErrorCode":404 # Collection does not exist
-
 grep '"status":"success"' output.json >/dev/null
 if [ $? -eq 0 ]; then
-	echo "${ID}" >> "${SUCCPREFIX}${RUNDATE}.csv"
+	echo "${ID},${COLLECTION}" >> "${SUCCPREFIX}${RUNDATE}.csv"
 else
-	echo "${ID}" >> "${ERRPREFIX}${RUNDATE}.csv"
 	ERRCODE=`grep -oE '"ErrorCode":[0-9]*' output.json | sed 's/.*://'`
+	echo "${ID},${COLLECTION},${ERRCODE}" >> "${ERRPREFIX}${RUNDATE}.csv"
 
 	case EXPRESSION in
 		404)
@@ -215,7 +212,7 @@ else
 		409)
 			1>&2 echo Product \"${TITLE}\" already registered on server
 			;;
-
+	esac
 #	DEBUG="1"
 fi
 
