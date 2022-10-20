@@ -33,6 +33,10 @@ Iterate over multiple instances of DHuS, collect synchronizer settings, compile 
 
 Accept footprint, iterate over past months and see what capacity it would take to store data for that footprint. The script produces a CSV by months, suitable for further processing with spreadsheet pivot tables. This is to easily determine what capacity it takes to support a user group interested in a specific geographical area.
 
+## register-stac.sh
+
+Accepts a product ID and uses that to obtain necessary metadata for that product from a given DHuS server, generate an appropriate STAC metadata structure, adjust `HREF` references within the structure to match the components of the original product in the DHuS server, and finally inserts the resulting STAC item into a STAC catalogue. `register-stac.sh` has a built-in filter, which determines the target STAC collection based on the title of the product. This can be customized in code.
+
 # Gist
 
 The `gist` folder contains short snippets of code, that illustrate some frequently performed actions. They are intended as examples, often can be pasted into your console, but there is no attribute handling, checks, cleanup, et cetera.
