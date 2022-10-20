@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG=1
+DEBUG=0
 ID="$1"
 HOST="https://dhr1.cesnet.cz/"
 STACHOST="https://stac.cesnet.cz"
@@ -198,16 +198,24 @@ curl -n -o output.json -X POST "${STACHOST}/collections/${COLLECTION[${PLATFORM}
 ######################################
 
 
-#TODO: Add reaction to {"ErrorMessage":"Not Found","ErrorCode":404}
-
-# TODO: "ErrorCode":409
-# TODO: "ErrorCode":404
+# TODO: "ErrorCode":409 # Already exists
+# TODO: "ErrorCode":404 # Collection does not exist
 
 grep '"status":"success"' output.json >/dev/null
 if [ $? -eq 0 ]; then
 	echo "${ID}" >> "${SUCCPREFIX}${RUNDATE}.csv"
 else
 	echo "${ID}" >> "${ERRPREFIX}${RUNDATE}.csv"
+	ERRCODE=`grep -oE '"ErrorCode":[0-9]*' output.json | sed 's/.*://'`
+
+	case EXPRESSION in
+		404)
+			1>&2 echo Collection \"${COLLECTION}\" apparently does not exist on server
+			;;
+		409)
+			1>&2 echo Product \"${TITLE}\" already registered on server
+			;;
+
 #	DEBUG="1"
 fi
 
