@@ -13,6 +13,10 @@ Intended to be run by `cron`. It does not produce the statistics itself but rath
 
 Generates a list of Sentinel2 L1C products in the target site that do not yet have a matching L2A product with atmospheric correction, produced with `Sen2cor`.
 
+## gen\_new\_list.sh
+
+Generates a list of all product IDs that have appeared on a specified DHuS endpoint since a given timestamp. Useful for all application where reaction to new products is required.
+
 ## format\_dhus\_log.sh
 
 Reads log files written by DHuS and produces a chart showing download speeds from various identified sources over time.
@@ -28,6 +32,10 @@ Iterate over multiple instances of DHuS, collect synchronizer settings, compile 
 ## estimate-footprint.sh
 
 Accept footprint, iterate over past months and see what capacity it would take to store data for that footprint. The script produces a CSV by months, suitable for further processing with spreadsheet pivot tables. This is to easily determine what capacity it takes to support a user group interested in a specific geographical area.
+
+## register-stac.sh
+
+Accepts a product ID and uses that to obtain necessary metadata for that product from a given DHuS server, generate an appropriate STAC metadata structure, adjust `HREF` references within the structure to match the components of the original product in the DHuS server, and finally inserts the resulting STAC item into a STAC catalogue. `register-stac.sh` has a built-in filter, which determines the target STAC collection based on the title of the product. This can be customized in code.
 
 # Gist
 
