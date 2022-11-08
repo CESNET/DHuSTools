@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 WRKD="/tmp"
 VARTMP="/var/tmp/gen_new_list"
 NETRCOPT="-n"
@@ -112,9 +111,11 @@ debug "Got `wc -l newraw.csv | awk '{ print $1 }'` matches.\n"
 # Step 20: Eliminate previous matches
 
 if [ -s "${VARTMP}/list" ]; then
+	debug Filtering out `wc -l ${VARTMP}/list` files from previous list
 	cat newraw.csv | grep -v -f "${VARTMP}/list" > list
 	rm newraw.csv
 else
+	debug No previous files. Using full list.
 	mv newraw.csv list
 fi
 
