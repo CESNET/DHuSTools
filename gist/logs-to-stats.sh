@@ -5,9 +5,13 @@ if [ ! -f "users.pat" ]; then
 	exit 1
 fi
 
-egrep '^s/' users.pat >/dev/null
+
+egrep --text '^s/' users.pat >/dev/null
 
 if [ $? -ne 0 ]; then
+	#Fix Korea
+	sed -i 's/Korea, Republic of/Korea/g' users.pat
+
 	>&2 printf "Reformatting users.pat\n"
 	sed -i 's/\t/,\//' users.pat
 	sed -i 's/\t/,/g' users.pat
@@ -17,7 +21,7 @@ fi
 
 echo login,usage,domain,country,platform,type,product,size
 
-cat *.log | grep -E '(download.*by.*user.*completed)' | grep -v manifest.safe | grep -v xfdumanifest.xml | grep -ivE '.[GXK]ML)' | awk '{ print $10 " " $6 " " $15 }' | sed "s/['()]//g" | \
+grep --text -E '(download.*by.*user.*completed)' *.log | grep -v manifest.safe | grep -v xfdumanifest.xml | grep -ivE '.[GXK]ML)' | awk '{ print $10 " " $6 " " $15 }' | sed "s/['()]//g" | \
 awk '{
 	user=$1
 	product=toupper(gensub(/-/,"_","g",$2))
@@ -37,6 +41,9 @@ awk '{
 		gsub(/^OL_.*/,"OL",prodtype)
 		gsub(/^SL_.*/,"SL",prodtype)
 		gsub(/^SR_.*/,"SR",prodtype)
+		gsub(/^S5P_NRTI_/,"",prodtype)
+		gsub(/^S5P_OFFL_/,"",prodtype)
+		gsub(/^S5P_RPRO_/,"",prodtype)
 	}
 
 
