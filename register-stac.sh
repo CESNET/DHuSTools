@@ -2,11 +2,13 @@
 
 #DEBUG=1
 ID="$1"
-HOST="https://dhr1.cesnet.cz/"
+HOST="https://dhr3.cesnet.cz/"
 STACHOST="https://stac.cesnet.cz"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
+TOKEN="`cat ~/token`"
+SALT="dhr3"
 
 ######################################
 #
@@ -14,7 +16,7 @@ ERRPREFIX="/var/tmp/register-stac-error-"
 #
 ######################################
 
-make-sed-filter () {
+make_sed_filter () {
 
 cat << EOF > ${TMP}/prefix2collection.sed
 s/^S1[A-DP]_.._GRD[HM]_.*/sentinel-1-grd/
@@ -54,7 +56,7 @@ fi
 
 if [ ! -e ${TMP}/prefix2collection.sed ]; then
 	1>&2 echo $0: Generating SED filter for collections
-	make-sed-filter
+	make_sed_filter
 	if [ ! -e ${TMP}/prefix2collection.sed ]; then
 		1>&2 echo $0: Failed to store SED file. Cannot continue.
 		exit 1
@@ -66,8 +68,6 @@ if [ $? -gt 0 ]; then
 	1>&2 echo $0: xmlstarlet not installed
 	exit 1
 fi
-
-
 
 RUNDATE=`date +%Y-%m-%d`
 
@@ -89,10 +89,12 @@ cd "${TMP}/register-stac.$$"
 #
 ######################################
 
-curl -n -o node.xml "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"
+
+curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o node.xml "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"
 TITLE=`xmlstarlet sel -d -T -t -v "//_:entry/_:title" node.xml`
 PREFIX=`xmlstarlet sel -d -T -t -v "//_:entry/_:id" node.xml`
 PRODUCTURL=`echo "${PREFIX}" | sed 's/\\Nodes.*//'`
+echo Platform from title: ${TITLE}
 PLATFORM="${TITLE:0:2}"
 COLLECTION=`echo $TITLE | sed -f ${TMP}/prefix2collection.sed`
 
@@ -114,14 +116,14 @@ mkdir "${TITLE}"
 
 if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
 	MANIFEST="${TITLE}/manifest.safe"
-	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
+	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
 elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S3p" ]; then
 	MANIFEST="${TITLE}/xfdumanifest.xml"
-	curl -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
+	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
 else
 	MANIFEST="${TITLE}"
 	rmdir "${TITLE}"
-	curl -n -o "${MANIFEST}" "${PREFIX}/%24value"
+	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/%24value"
 fi
 
 # download other metadata files line by line (Only for S1 and S2)
@@ -132,7 +134,7 @@ if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
 		URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
 	#	echo $URL
 		mkdir -p "${TITLE}/$(dirname ${file})"
-		curl -n -o "${TITLE}/${file}" "${URL}"
+		curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${TITLE}/${file}" "${URL}"
 	done
 fi
 
@@ -176,8 +178,10 @@ cat "$file" | while IFS= read line; do
 		LEAD=`echo "$line" | sed 's/"href":.*/"href":/'`
 		URL="${PRODUCTURL}/Nodes(%27$(echo $path | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
 		echo "$LEAD \"${URL}\"," >> "new_${file}"
+	elif [[ "$line" =~ .*\"id\":.*  ]]; then # Reset ID
+		echo "${line}" | sed "s/\"id\":[^,]*/\"id\": \"${SALT}${ID}\"/" >> "new_${file}"
+	else	# No change
 
-	else # No change
 		echo "${line}" >> "new_${file}"
 	fi
 done
