@@ -72,8 +72,6 @@ get_list() {
 
 	PTYPE=$1
 
-	TOKEN="`cat ~/token`"
-
         let COUNT=$PAGESIZE+1
         while [ $COUNT -gt $PAGESIZE ]; do
                 COUNT=0
