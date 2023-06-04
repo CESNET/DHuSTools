@@ -2,13 +2,12 @@
 
 #DEBUG=1
 ID="$1"
-HOST="https://dhr3.cesnet.cz/"
+HOST="https://dhr1.cesnet.cz/"
 STACHOST="https://stac.cesnet.cz"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
-TOKEN="`cat ~/token`"
-SALT="dhr3"
+SALT="dhr1"
 
 ######################################
 #
