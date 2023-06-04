@@ -72,11 +72,10 @@ get_list() {
 
 	PTYPE=$1
 
-
         let COUNT=$PAGESIZE+1
         while [ $COUNT -gt $PAGESIZE ]; do
                 COUNT=0
-                SEG=$(curl -sS ${NETRCOPT} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id,CreationDate&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20ge%20datetime%27${FROM}%27")
+                SEG=$(curl -sS ${NETRCOPT} ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id,CreationDate&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20ge%20datetime%27${FROM}%27")
                 while read -r line; do
                         if [ $COUNT -ne 0 ]; then
                                 echo $line;
