@@ -13,7 +13,7 @@ else
 	trap "rm \"$LOCK\"" EXIT
 fi
 
-./gen_new_list.sh https://dhr3.cesnet.cz > "$VARPREFIX"
+./gen_new_list.sh https://dhr1.cesnet.cz > "$VARPREFIX"
 
 cat "$VARPREFIX" | while read id; do
 	./register-stac.sh $id

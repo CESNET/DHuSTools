@@ -88,7 +88,6 @@ cd "${TMP}/register-stac.$$"
 #
 ######################################
 
-
 curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o node.xml "${HOST}odata/v1/Products(%27${ID}%27)/Nodes"
 TITLE=`xmlstarlet sel -d -T -t -v "//_:entry/_:title" node.xml`
 PREFIX=`xmlstarlet sel -d -T -t -v "//_:entry/_:id" node.xml`
