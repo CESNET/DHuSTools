@@ -9,6 +9,10 @@ SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
 SALT="dhr1"
 
+S1COMMAND="/home/debian/s1/bin/stac sentinel1"
+S2COMMAND="/home/debian/s2/bin/stac sentinel2"
+S3COMMAND="/home/debian/s3/bin/stac sentinel3"
+S5pCOMMAND="/home/debian/s5p/bin/stac sentinel5p"
 ######################################
 #
 # functions
@@ -142,6 +146,18 @@ if [ "$PLATFORM" == "S1" ]; then
 	mkdir -p "${TITLE}/measurement"
 fi
 
+# detect S1 type
+if [ "$PLATFORM" == "S1" ]; then
+	if [[ ${TITLE} =~ "_GRD_" ]]; then
+		S1TYPE="grd"
+	elif [[ ${TITLE} =~ "_SLC_" ]]; then
+		S1TYPE="slc"
+	elif [[ ${TITLE} =~ "_RTC_" ]]; then
+		S1TYPE="rtc"
+	else
+		S1TYPE="grd"
+	fi
+fi
 
 find . 1>&2
 
@@ -152,13 +168,13 @@ find . 1>&2
 ######################################
 
 if [ "$PLATFORM" == "S2" ]; then
-	~/.local/bin/stac sentinel2 create-item "${TITLE}" ./
+	${S2COMMAND} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S1" ]; then
-	~/.local/bin/stac sentinel1 grd create-item "${TITLE}" ./
+	${S1COMMAND} ${S1TYPE} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S3" ]; then
-	~/.local/bin/stac sentinel3 create-item "${TITLE}" ./
+	${S3COMMAND} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S5" ]; then
-	~/.local/bin/stac sentinel5p create-item "${TITLE}" ./
+	${S5pCOMMAND} create-item "${TITLE}" ./
 fi
 
 ######################################
