@@ -1,7 +1,15 @@
 #!/bin/bash
 
+if [ "$1" == "" ]; then
+	1>&2 echo "No pattern given, counting for all logs"
+	PATTERN=""
+else 
+	1>&2 echo "Only considering logs with \"$1\""
+	PATTERN="*$1"
+fi
+
 if [ ! -f "users.pat" ]; then
-	>&2 printf "This script expects file \"users.pat\" with sed patterns to replace simple username occurrences with csv values. Line by line, for example:\n\ts/^sustr4,/sustr4,Research,Other,Czech Republic,/\nThis is best produced by tweaking the output of:\n\tSELECT login,login,usage,domain,country FROM users;\nIt is possible to start with the \"users.pat\" file in simple tabular TAB-separated format instead. If so this script will attempt to reformat the file on first run.\n"
+	>&2 printf "This script expects file \"users.pat\" with sed patterns to replace simple username occurrences with csv values. Line by line, for example:\n\ts/^sustr4,/sustr4,Research,Other,Czech Republic,/\nThis is best produced by tweaking the output of:\n\tSELECT login,login,usage,domain,country FROM users;\nIt is possible to start with the \"users.pat\" file in simple tabular TAB-separated format instead. If so this script will attempt to reformat the file on first run.\n\nYou can use an argument as a pattern (e.g., year) to filter log files that should be considered.\n"
 	exit 1
 fi
 
@@ -21,7 +29,8 @@ fi
 
 echo login,usage,domain,country,platform,type,product,size
 
-grep --text -E '(download.*by.*user.*completed)' *.log | grep -v manifest.safe | grep -v xfdumanifest.xml | grep -ivE '.[GXK]ML)' | awk '{ print $10 " " $6 " " $15 }' | sed "s/['()]//g" | \
+for f in "${PATTERN}*.log.gz"; do gunzip -c $f; done | \
+grep --text -E '(download.*by.*user.*completed)' | grep -v manifest.safe | grep -v xfdumanifest.xml | grep -ivE '.[GXK]ML)' | awk '{ print $10 " " $6 " " $15 }' | sed "s/['()]//g" | \
 awk '{
 	user=$1
 	product=toupper(gensub(/-/,"_","g",$2))
