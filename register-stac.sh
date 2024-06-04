@@ -119,7 +119,7 @@ mkdir "${TITLE}"
 if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
 	MANIFEST="${TITLE}/manifest.safe"
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
-elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S3p" ]; then
+elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S5p" ]; then
 	MANIFEST="${TITLE}/xfdumanifest.xml"
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
 else
@@ -128,9 +128,9 @@ else
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/%24value"
 fi
 
-# download other metadata files line by line (Only for S1 and S2)
-if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
-	cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
+# download other metadata files line by line (Only for S1, S2 and recently also S3)
+if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" -o "$PLATFORM" == "S3" ]; then
+	cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml|gifapar.nc|otci.nc|iwv.nc|lqsf.nc|time_coordinates.nc|geo_coordinates.nc|tie_geometries.nc|tie_meteo.nc|instrument_data.nc" | sed 's/.*href="//' | sed 's/".*//' |
 	while read file; do
 		1>&2 echo Downloading $file
 		URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
