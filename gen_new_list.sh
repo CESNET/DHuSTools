@@ -2,9 +2,9 @@
 
 WRKD="/tmp"
 VARTMP="/var/tmp/gen_new_list"
-NETRCOPT="-n"
+NETRCOPT=""
 FROM=`date -d "yesterday-30 days" +%Y-%m-%dT%H:%M:%S.000`
-VERBOSE=0
+: ${VERBOSE:=0}
 DRY=0
 
 
@@ -28,7 +28,7 @@ if [ -s "${VARTMP}/timestamp" ]; then
 fi
 
 #TODO: Add options to support other types of output besides IDs
-while getopts "hvdn:f:u:t:" opt; do
+while getopts "hvdn:f:u:t:e" opt; do
   case $opt in
         h)
                 printf "Generate a list of Sentinel products recently published at an endpoint.\n\nUsage:\n
@@ -54,6 +54,10 @@ while getopts "hvdn:f:u:t:" opt; do
         t)
 		VARTMP="${OPTARG}"
                 ;;
+	e)
+		echo "machine $MACHINE" >> /root/.netrc     && echo "login $LOGIN" >> /root/.netrc     && echo "password $PASSWORD" >> /root/.netrc
+		NETRCOPT="--netrc-file /root/.netrc"
+		;;
         v)
 		VERBOSE=1
                 ;;
@@ -67,7 +71,7 @@ shift $(($OPTIND - 1))
 URL=$1
 
 get_list() {
-        PAGESIZE=100
+        : ${PAGESIZE:=100}
         SKIP=0
 
 	PTYPE=$1
@@ -75,7 +79,8 @@ get_list() {
         let COUNT=$PAGESIZE+1
         while [ $COUNT -gt $PAGESIZE ]; do
                 COUNT=0
-                SEG=$(curl -sS ${NETRCOPT} ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id,CreationDate&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20ge%20datetime%27${FROM}%27")
+		SEG=$(curl -sS ${NETRCOPT} ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id,CreationDate&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20ge%20datetime%27${FROM}%27%20and%20startswith%28Name,%27S2%27%29")
+                #SEG=$(curl -sS ${NETRCOPT} ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} "${URL}/odata/v1/Products?%24format=text/csv&%24select=Name,Id,CreationDate&%24skip=${SKIP}&%24top=${PAGESIZE}&%24filter=CreationDate%20ge%20datetime%27${FROM}%27")
                 while read -r line; do
                         if [ $COUNT -ne 0 ]; then
                                 echo $line;
@@ -145,4 +150,5 @@ if [ $VERBOSE -eq 0 ]; then
 else
 	>&2 printf "Working data kept in \"${WRKD}/newcomp.$$\"\n"
 fi
+
 

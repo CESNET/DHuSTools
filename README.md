@@ -44,3 +44,48 @@ The `gist` folder contains short snippets of code, that illustrate some frequent
 # Contributing
 
 Contributions are welcome. Fork this repository on GitHub and open a pull request with your contribution. You are also welcome to open Issues for discussion and/or suggestions.
+
+
+<!-- Clone repository -->
+### Clone repository
+ ```git clone https://github.com/Pirokus/Check-new-register-stac.git```
+### Create .env file and setup 6 variables  
+```
+vim .env
+```
+```
+MACHINE=
+LOGIN=
+PASSWORD=
+
+CATALOG=
+LOGIN2=
+PASSWORD2=
+```
+
+### Build and run docker compose
+```
+docker compose build
+```
+```
+docker compose up
+```
+### Sources
+https://github.com/CESNET/DHuSTools/blob/master/gist/check-new-register-stac.sh
+
+https://github.com/CESNET/DHuSTools/blob/master/register-stac.sh
+
+https://github.com/CESNET/DHuSTools/blob/master/gen_new_list.sh
+
+https://github.com/stac-utils/stactools/tree/main
+
+https://pypi.org/project/stactools-sentinel1/
+
+https://pypi.org/project/stactools-sentinel2/
+
+https://pypi.org/project/stactools-sentinel3/
+
+https://pypi.org/project/stactools-sentinel5p/
+
+https://resto.c-scale.zcu.cz/doc
+
