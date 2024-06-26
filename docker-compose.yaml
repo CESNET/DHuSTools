@@ -1,0 +1,12 @@
+services:
+  app:
+    image: check-new-register-stac:0.1
+    #network_mode: "host"
+    build: .
+    #  context: .
+    #    dockerfile: Dockerfile
+    volumes:
+      - /mnt/data/var:/var/tmp
+    env_file:
+      - path: ./.env
+        required: true # default
