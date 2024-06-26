@@ -22,7 +22,7 @@ RUN python3 -m venv /opt/s3 && /opt/s3/bin/pip install stactools-sentinel3==0.3.
 RUN python3 -m venv /opt/s5p && /opt/s5p/bin/pip install stactools-sentinel5p netCDF4
 
 # Přidání skriptů do kontejneru
-COPY register-stac.sh check-new-register-stac.sh gen_new_list.sh /app/
+COPY register-stac.sh gist/check-new-register-stac.sh gen_new_list.sh /app/
 
 #COPY requirements.txt register-stac.sh check-new-register-stac.sh gen_new_list.sh /app/
 # Nastavení pracovního adresáře
