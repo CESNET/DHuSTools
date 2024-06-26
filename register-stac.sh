@@ -3,16 +3,17 @@
 #DEBUG=1
 ID="$1"
 HOST="https://dhr1.cesnet.cz/"
-STACHOST="https://stac.cesnet.cz"
+STACHOST="https://resto.c-scale.zcu.cz/"
 TMP="/tmp"
 SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
 SALT="dhr1"
 
-S1COMMAND="/home/debian/s1/bin/stac sentinel1"
-S2COMMAND="/home/debian/s2/bin/stac sentinel2"
-S3COMMAND="/home/debian/s3/bin/stac sentinel3"
-S5pCOMMAND="/home/debian/s5p/bin/stac sentinel5p"
+
+S1COMMAND="/opt/s1/bin/stac sentinel1"
+S2COMMAND="/opt/s2/bin/stac sentinel2"
+S3COMMAND="/opt/s3/bin/stac sentinel3"
+S5pCOMMAND="/opt/s5p/bin/stac sentinel5p"
 ######################################
 #
 # functions
@@ -207,7 +208,7 @@ done
 #
 ######################################
 
-curl -n -o output.json -X POST "${STACHOST}/collections/${COLLECTION[${PLATFORM}]}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
+curl --netrc-file /root/.netrc2 -o output.json -X POST "${STACHOST}/collections/${COLLECTION[${PLATFORM}]}/items" -H 'Content-Type: application/json' -H 'Accept: application/json' --upload-file "new_${file}"
 
 ######################################
 #
