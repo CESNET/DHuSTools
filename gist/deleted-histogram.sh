@@ -4,7 +4,9 @@
 	URL="https://colhub.copernicus.eu/dhus"
 	UPWD="-n"
 	NOW=`date -d 'yesterday 00:00:00' "+%s"`
-	START=0 # Start from the beginning of the world (i.e., Jan 1970)
+	if [ "$START" == "" ]; then
+		START=0 # Start from the beginning of the world (i.e., Jan 1970)
+	fi
 
 	SSTRING=`date -d @$START "+%Y-%m-%dT%H:%M:%S.000"`
 	let ETIME=$START+86400
