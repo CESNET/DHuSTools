@@ -13,9 +13,14 @@ else
 	trap "rm \"$LOCK\"" EXIT
 fi
 
-./gen_new_list.sh https://dhr1.cesnet.cz > "$VARPREFIX"
+bash ./gen_new_list.sh -e -v https://dhr1.cesnet.cz > "$VARPREFIX"
+
+echo "Spoustim ./register-stac.sh"
+
+#Vyvoreni .netrc2 pro overeni pres curl pro katalog
+echo "machine $CATALOG" >> /root/.netrc2     && echo "login $LOGIN2" >> /root/.netrc2     && echo "password $PASSWORD2" >> /root/.netrc2
 
 cat "$VARPREFIX" | while read id; do
-	./register-stac.sh $id
+	 ./register-stac.sh $id
 done
-
+echo "Dokoncil jsem script!"
