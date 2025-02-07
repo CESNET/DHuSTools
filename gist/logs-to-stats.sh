@@ -21,7 +21,55 @@ fi
 
 echo login,usage,domain,country,platform,type,product,size
 
-grep --text -E '(download.*by.*user.*completed)' *.log | grep -v manifest.safe | grep -v xfdumanifest.xml | grep -ivE '.[GXK]ML)' | awk '{ print $10 " " $6 " " $15 }' | sed "s/['()]//g" | \
+cat *.log | grep SUCCESS | grep '$value' | grep "Products" | grep -v "Products.*Products" | grep -vi manifest | grep -v '/Online/' | sed 's/\]/ /g' | sed 's/\[/ /g' | sed 's/[[:space:]][[:space:]]*/ /g' | awk '{print $7 " " $10}' | sed 's/\/\$value//' >> files.$$.csv
+
+TMP="/var/tmp/logs-to-stats.tmp"
+mkdir -p "$TMP"
+LINE=0;
+NAMEPAT="[sS][1235][ABCDPabcdp]_"
+while read -r user url; do
+	LINE=$(( $LINE + 1 ))
+	url=$( echo "$url" | sed 's/:\/\/127.0.0.1:8081/s:\/\/dhr1.cesnet.cz/' )
+
+	sanit=$( echo "$url" | md5sum | sed 's/\s.*//')
+
+	if [ ! -f "${TMP}/${sanit}.xml" ]; then
+		curl -ns -o "${TMP}/${sanit}.xml" "$url"
+	fi
+
+	size=$( xmlstarlet sel -d -T -t -v "//_:entry/m:properties/d:ContentLength" "${TMP}/${sanit}.xml")
+
+	if [ $? -eq 3 ]; then # XML broken, try brute force
+		
+		1>&2 echo "l${LINE}: Brute force workaround for URL $url:"
+		size=$( grep -o '"ContentLength":[0-9]*' "${TMP}/${sanit}.xml" | sed 's/.*://' )
+		title=$( grep -o '"Name":"[^"]*' "${TMP}/${sanit}.xml" | sed 's/.*:"//' )
+
+		if [ "${title}${size}" != "" ]; then
+			echo ${user} ${title} ${size}
+		else
+			echo ${user} ${url} >> errors.$$.csv
+		fi
+
+	else
+		title=$( xmlstarlet sel -d -T -t -v "//_:entry/_:title" "${TMP}/${sanit}.xml")
+		if [ $? -gt 0 ]; then
+			1>&2 echo "l${LINE}: Error parsing XML for URL $url:"
+		else
+			if [[ ! $title =~ $NAMEPAT ]]; then
+				title=$( xmlstarlet sel -d -T -t -v "//_:entry/_:id" "${TMP}/${sanit}.xml" | grep -o "${NAMEPAT}[^']*" )
+			fi
+
+			if [ "${title}${size}" != "" ]; then
+				echo ${user} ${title} ${size}
+			else
+				echo ${user} ${url} >> errors.$$.csv
+			fi
+		fi
+	fi
+done < files.$$.csv > list.$$.csv
+
+cat list.$$.csv | \
 awk '{
 	user=$1
 	product=toupper(gensub(/-/,"_","g",$2))
@@ -49,3 +97,4 @@ awk '{
 
 	print user "," platform "," prodtype "," product "," size
 }' | sed -f users.pat
+
