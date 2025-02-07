@@ -9,6 +9,10 @@ SUCCPREFIX="/var/tmp/register-stac-success-"
 ERRPREFIX="/var/tmp/register-stac-error-"
 SALT="dhr1"
 
+S1COMMAND="/home/debian/s1/bin/stac sentinel1"
+S2COMMAND="/home/debian/s2/bin/stac sentinel2"
+S3COMMAND="/home/debian/s3/bin/stac sentinel3"
+S5pCOMMAND="/home/debian/s5p/bin/stac sentinel5p"
 ######################################
 #
 # functions
@@ -115,7 +119,7 @@ mkdir "${TITLE}"
 if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
 	MANIFEST="${TITLE}/manifest.safe"
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27manifest.safe%27)/%24value"
-elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S3p" ]; then
+elif [ "$PLATFORM" == "S3" -o "$PLATFORM" == "S5p" ]; then
 	MANIFEST="${TITLE}/xfdumanifest.xml"
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/Nodes(%27xfdumanifest.xml%27)/%24value"
 else
@@ -124,9 +128,9 @@ else
 	curl ${OS_ACCESS_TOKEN:+-H "Authorization: Bearer $OS_ACCESS_TOKEN"} -n -o "${MANIFEST}" "${PREFIX}/%24value"
 fi
 
-# download other metadata files line by line (Only for S1 and S2)
-if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" ]; then
-	cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml" | sed 's/.*href="//' | sed 's/".*//' |
+# download other metadata files line by line (Only for S1, S2 and recently also S3)
+if [ "$PLATFORM" == "S1" -o "$PLATFORM" == "S2" -o "$PLATFORM" == "S3" ]; then
+	cat "${MANIFEST}" | grep 'href=' | grep -E "/MTD_MSIL2A.xml|MTD_MSIL1C.xml|/MTD_TL.xml|annotation/s1a.*xml|gifapar.nc|otci.nc|iwv.nc|lqsf.nc|time_coordinates.nc|geo_coordinates.nc|tie_geometries.nc|tie_meteo.nc|instrument_data.nc" | sed 's/.*href="//' | sed 's/".*//' |
 	while read file; do
 		1>&2 echo Downloading $file
 		URL="${PREFIX}/Nodes(%27$(echo $file | sed "s|^\.*\/*||" | sed "s|\/|%27)/Nodes(%27|g")%27)/%24value"
@@ -142,6 +146,18 @@ if [ "$PLATFORM" == "S1" ]; then
 	mkdir -p "${TITLE}/measurement"
 fi
 
+# detect S1 type
+if [ "$PLATFORM" == "S1" ]; then
+	if [[ ${TITLE} =~ "_GRD_" ]]; then
+		S1TYPE="grd"
+	elif [[ ${TITLE} =~ "_SLC_" ]]; then
+		S1TYPE="slc"
+	elif [[ ${TITLE} =~ "_RTC_" ]]; then
+		S1TYPE="rtc"
+	else
+		S1TYPE="grd"
+	fi
+fi
 
 find . 1>&2
 
@@ -152,13 +168,13 @@ find . 1>&2
 ######################################
 
 if [ "$PLATFORM" == "S2" ]; then
-	~/.local/bin/stac sentinel2 create-item "${TITLE}" ./
+	${S2COMMAND} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S1" ]; then
-	~/.local/bin/stac sentinel1 grd create-item "${TITLE}" ./
+	${S1COMMAND} ${S1TYPE} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S3" ]; then
-	~/.local/bin/stac sentinel3 create-item "${TITLE}" ./
+	${S3COMMAND} create-item "${TITLE}" ./
 elif [ "$PLATFORM" == "S5" ]; then
-	~/.local/bin/stac sentinel5p create-item "${TITLE}" ./
+	${S5pCOMMAND} create-item "${TITLE}" ./
 fi
 
 ######################################
